@@ -14,9 +14,9 @@
             background: linear-gradient(135deg, #e0f2fe 0%, #d1e5ff 100%); 
             /* New properties for dynamic image background */
             background-size: cover;
-            background-attachment: fixed; /* Fixed background looks great with scrolling */
+            background-attachment: fixed; 
             background-position: center;
-            transition: background-image 1s ease-in-out; /* Smooth transition when image changes */
+            transition: background-image 1s ease-in-out;
             
             display: flex;
             justify-content: center;
@@ -24,8 +24,14 @@
             min-height: 100vh;
             padding: 1rem;
         }
+        /* Increased max width for more content space */
+        #app {
+            max-width: 48rem; /* Increased from max-w-xl (36rem) to 48rem */
+            width: 95%; /* Use 95% of screen width up to max-width */
+        }
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
+            height: 8px; /* Height for horizontal scrollbar */
             width: 8px;
         }
         ::-webkit-scrollbar-thumb {
@@ -122,21 +128,29 @@
         
         /* Hourly Scroll Container */
         .hourly-scroll {
-            overflow-x: scroll;
+            overflow-x: auto;
             white-space: nowrap;
-            padding-bottom: 10px; /* Space for scrollbar */
+            padding-bottom: 0.5rem; /* Space for scrollbar */
         }
-        
-        /* Forecast Day button state */
-        .forecast-day-active {
-            background-color: #bfdbfe; /* blue-200 */
-            border: 2px solid #3b82f6; /* blue-500 */
+        .hourly-card {
+            display: inline-block;
+            width: 6rem; /* Fixed width for each hourly card */
+            min-width: 6rem;
+            margin-right: 0.5rem;
+            vertical-align: top;
+        }
+
+        /* Styling the date selector buttons */
+        .date-selector-active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
         }
     </style>
 </head>
 <body>
 
-    <div id="app" class="w-full max-w-xl bg-white/90 p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-300">
+    <div id="app" class="bg-white/90 p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-300">
         
         <!-- Header -->
         <header class="text-center mb-6">
@@ -144,50 +158,47 @@
             <p class="text-sm text-gray-500 mt-1">Check the current conditions anywhere in the world.</p>
         </header>
         
-        <!-- Severe Weather Alert Banner (NEW) -->
-        <div id="alertBanner" class="hidden p-3 mb-4 rounded-lg bg-red-100 border border-red-400 text-red-800 text-sm font-semibold flex items-center shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8.257 3.34A5.5 5.5 0 0113.82 2.5a.5.5 0 01.12.98l-1.026.257a4.5 4.5 0 10-6.19 5.864l1.378 1.157a.5.5 0 01-.06.77L6.6 13.9a.5.5 0 01-.734-.02l-1.378-1.157A5.5 5.5 0 018.257 3.34zM10 16a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+        <!-- Severe Weather Alert Banner (Highest Priority) -->
+        <div id="alertBanner" class="hidden p-3 mb-4 rounded-lg bg-red-100 border border-red-400 text-red-700 font-semibold flex items-center shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
             </svg>
-            <span id="alertMessage"></span>
+            <span id="alertContent"></span>
         </div>
 
         <!-- Input Section -->
         <div class="flex space-x-3 mb-4">
-            <input type="text" id="cityInput" placeholder="Enter city name or use location..." 
-                   class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
-            
-            <!-- Button Container (Search/Refresh Toggle) -->
-            <div id="searchRefreshContainer" class="relative flex">
-                <button id="searchButton" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95">
-                    Search
-                </button>
-                <button id="refreshButton" style="display: none;"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95 absolute inset-0 w-full h-full"
-                        title="Refresh Data">
-                    <!-- Refresh Icon SVG -->
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mx-auto">
-                        <path d="M21.5 2v6h-6"/>
-                        <path d="M2.5 22v-6h6"/>
-                        <path d="M21.5 8a10 10 0 0 0-19 0l1.5 1.5"/>
-                        <path d="M2.5 16a10 10 0 0 0 19 0l-1.5-1.5"/>
+            <div class="relative flex-grow">
+                <input type="text" id="cityInput" placeholder="Enter city name or use location..." 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
+                <!-- Refresh Button (Hidden until successful search) -->
+                <button id="refreshButton" 
+                        class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-center"
+                        style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v1h2a1 1 0 011 1v2a1 1 0 01-1 1H5v2h2a1 1 0 011 1v2a1 1 0 01-1 1H5v1a1 1 0 01-2 0v-1H2a1 1 0 01-1-1v-2a1 1 0 011-1h1V8H2a1 1 0 01-1-1V5a1 1 0 011-1h1V3a1 1 0 011-1zm6.5 7.728l3.182-3.182a4 4 0 00-5.657-5.657L6.818 3.343a6 6 0 118.485 8.485l-3.182 3.182a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
                     </svg>
                 </button>
             </div>
+            <!-- Search Button (Visible initially, toggles with Refresh) -->
+            <button id="searchButton" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95">
+                Search
+            </button>
         </div>
 
         <!-- Search History List/Suggestions Dropdown -->
         <div id="historyContainer" class="relative">
             <div id="historyDisplay" 
-                 class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto mt-[-10px]" 
-                 style="display: none;">
-                <!-- Content will dynamically switch between History and Suggestions -->
+                 class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto mt-[-10px] hidden">
                 <div id="historyHeader" class="flex justify-between items-center p-2 border-b text-gray-500 text-xs font-semibold">
-                    <span>Recent Searches</span>
+                    <span id="dropdownTitle">Recent Searches</span>
                     <button id="clearHistoryBtn" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded transition duration-150" title="Clear All History">
                         Clear
                     </button>
+                </div>
+                <div id="dropdownList">
+                    <!-- Suggestions or History items injected here -->
                 </div>
             </div>
         </div>
@@ -196,24 +207,33 @@
         <div class="flex justify-center flex-wrap gap-x-6 gap-y-3 mb-6 mt-4">
             <!-- Unit Toggle -->
             <div id="unitToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
-                <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-inactive">°C</button>
-                <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-active">°F</button>
+                <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°C</button>
+                <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°F</button>
             </div>
 
-            <!-- Basic / Advanced Toggle (NEW) -->
+            <!-- Basic / Advanced Toggle -->
             <div id="detailToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
-                <button id="basicBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-active">Basic</button>
-                <button id="advancedBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-inactive">Advanced</button>
+                <button id="basicBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Basic</button>
+                <button id="advancedBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Advanced</button>
             </div>
+            
+            <!-- 3D Map View -->
+            <button id="mapBtn" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
+                </svg>
+                View 3D Map
+            </button>
         </div>
 
         <!-- Message Area (Errors/Information) -->
         <div id="messageArea" class="text-center text-red-500 font-medium mb-4" style="display: none;"></div>
         
-        <!-- AI INSIGHT CARD (NEW) -->
+        <!-- AI INSIGHT CARD -->
         <div id="insightCard" class="hidden p-4 mb-6 bg-white rounded-xl shadow-lg border-l-4 border-blue-500">
             <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M5.5 10a.5.5 0 01.5-.5h2a.5.5 0 010 1H6a.5.5 0 01-.5-.5zm.5 2a.5.5 0 000 1h2a.5.5 0 000-1H6a.5.5 0 00-.5.5zm10-5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM16 8a.5.5 0 000 1h2a.5.5 0 000-1h-2z" />
                     <path fill-rule="evenodd" d="M18.442 8.796a4.43 4.43 0 011.025.267 1 1 0 01.533.888v.175a1 1 0 01-.225.641l-2.023 2.768a1 1 0 01-.98.375h-2.128a1 1 0 01-.914-.582 1 1 0 01.196-.924c.036-.04.07-.08.106-.12l1.62-1.74a1 1 0 00-.773-1.614h-3.414l.001 2.5a1 1 0 01-1 1H5a1 1 0 01-1-1v-2.5H.5a.5.5 0 010-1h3.5v-2.5a1 1 0 011-1h6.414a1 1 0 00.773-1.614l-1.62-1.74a1 1 0 01-.196-.924 1 1 0 01.914-.582h2.128a1 1 0 01.98.375l2.023 2.768a1 1 0 01.225.641v.175a.5.5 0 01-.533.488zM15 11h-2v2h2v-2zM7 11H5v2h2v-2z" clip-rule="evenodd"/>
                 </svg>
                 AeroView Insight
@@ -222,7 +242,7 @@
                 <!-- AI generated text goes here -->
             </div>
             <div id="insightLoading" class="text-sm text-gray-500 mt-2 italic flex items-center">
-                <svg class="spinner h-4 w-4 mr-1" viewBox="0 0 50 50">
+                <svg class="spinner h-4 w-4 mr-1 text-blue-500" viewBox="0 0 50 50">
                     <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
                 </svg>
                 Generating AI summary...
@@ -231,7 +251,7 @@
         <!-- END AI INSIGHT CARD -->
 
         
-        <!-- Loading Skeleton (New Element) -->
+        <!-- Loading Skeleton -->
         <div id="loadingSkeleton" class="hidden text-center p-6 bg-gray-100 rounded-3xl shadow-md transition-all duration-300">
             <div class="flex flex-col items-center">
                 <svg class="spinner h-8 w-8 text-blue-500 mb-4" viewBox="0 0 50 50">
@@ -239,7 +259,7 @@
                 </svg>
                 <div class="h-4 bg-gray-300 rounded w-1/2 mb-4 animate-pulse"></div>
                 <div class="h-24 bg-gray-300 rounded-lg w-full mb-4 animate-pulse"></div>
-                <div class="grid grid-cols-2 gap-4 w-full">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
                     <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
                     <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
                     <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
@@ -248,7 +268,7 @@
             </div>
         </div>
 
-        <!-- Initial/Welcome Content (New Element) -->
+        <!-- Initial/Welcome Content -->
         <div id="welcomeState" class="text-center p-6 bg-white rounded-3xl border border-gray-200 shadow-lg">
             <h2 class="text-xl font-bold text-gray-800 mb-2">Welcome to AeroView!</h2>
             <p class="text-gray-600 mb-4">Start by searching for a city, or grant location access to see your local weather.</p>
@@ -256,7 +276,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                 </svg>
-                Try searching "London" or "Tokyo"!
+                Try searching "London, UK" or "Dallas, TX"!
             </p>
         </div>
         
@@ -264,40 +284,30 @@
         <div id="weatherDisplay" class="hidden text-center p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02]">
             <!-- Current weather content will be injected here -->
         </div>
-        
-        <!-- Google Earth View Button Placeholder (NEW) -->
-        <div id="mapViewContainer" class="hidden text-center mt-4 mb-4">
-            <a id="mapViewLink" href="#" target="_blank" class="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95 text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 102 0V8a1 1 0 00-.445-.768l-2-1z" clip-rule="evenodd" />
-                </svg>
-                View 3D Map
-            </a>
-        </div>
 
-        <!-- Hourly Forecast Section (NEW) -->
+        <!-- Hourly Forecast Section -->
         <div id="hourlyForecastSection" class="hidden mt-6">
-            <h3 id="hourlyForecastTitle" class="text-xl font-bold text-gray-800 mb-3 text-center border-b pb-2">Hourly Forecast</h3>
-            <div id="hourlyForecastDisplay" class="hourly-scroll flex space-x-3 py-2">
-                <!-- Hourly cards will be injected here -->
+            <h3 class="text-xl font-bold text-gray-800 mb-3 text-center border-b pb-2">Hourly Forecast (Next 15 Hours)</h3>
+            <div id="hourlyDisplay" class="hourly-scroll flex overflow-x-auto mt-4">
+                <!-- Hourly forecast cards injected here -->
             </div>
         </div>
-        
-        <!-- 5-Day Forecast Section (Now Date Selector) -->
+
+        <!-- 5-Day Forecast Section -->
         <div id="forecastSection" class="hidden mt-6">
             <h3 class="text-xl font-bold text-gray-800 mb-3 text-center border-b pb-2">5-Day Forecast</h3>
             <div id="forecastDisplay" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                <!-- Forecast day selector buttons will be injected here -->
+                <!-- Forecast cards will be injected here -->
             </div>
         </div>
 
-        <!-- App Footer (New Element) -->
+        <!-- App Footer -->
         <footer class="mt-6 text-center text-sm text-gray-400">
             <button id="aboutBtn" class="hover:text-gray-600 transition underline">About this App</button>
         </footer>
     </div>
     
-    <!-- About Modal (New Element) -->
+    <!-- About Modal -->
     <div id="aboutModal" class="modal-backdrop hidden">
         <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm transform transition-all duration-300 scale-100">
             <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">About AeroView</h3>
@@ -305,7 +315,7 @@
                 This modern web application was developed by you, the creator, as a comprehensive coding project.
             </p>
             <p class="text-gray-700 mb-4">
-                Weather data is powered by the **OpenWeatherMap API**.
+                Weather data is powered by the **OpenWeatherMap API**. AI Insights are generated by the **Gemini API**.
             </p>
             <button id="closeModalBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
                 Close
@@ -317,1298 +327,51 @@
     <script>
         // --- API CONFIGURATION ---
         const OPENWEATHER_API_KEY = "9fcf1e73c7dc66afb1e248c5ef3bdbb3"; 
-        
-        // !!! IMPORTANT !!!
-        // Gemini API Key provided by the user: AIzaSyDraNdjH386L-xPRwPD7VDZejiQPfI_7BM
-        const GEMINI_API_KEY = "AIzaSyDraNdjH386L-xPRwPD7VDZejiQPfI_7BM";
-        
         const CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
         const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
+        const ALERTS_URL = "https://api.openweathermap.org/data/2.5/onecall";
+        const AQI_URL = "https://api.openweathermap.org/data/2.5/air_pollution";
         const ICON_URL = "https://openweathermap.org/img/wn/";
         // Base URL for dynamic image search (fallback)
         const CITY_IMAGE_BASE = "https://source.unsplash.com/random/1600x900/?";
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-        const AIR_POLLUTION_URL = "https://api.openweathermap.org/data/2.5/air_pollution"; // NEW
+        const GEMINI_API_KEY = "AIzaSyDraNdjH386L-xPRwPD7VDZejiQPfI_7BM"; // User's key
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + GEMINI_API_KEY;
+
         
-        // --- STATIC CITY LIST FOR SUGGESTIONS (FIXED US CITIES WITH STATES) ---
+        // --- STATIC CITY LIST FOR SUGGESTIONS (Restored pre-7-continent list) ---
         const CITY_LIST = [
-            // Global Cities
-            "New York", "London", "Paris", "Tokyo", "Sydney", "Dubai", "Rome", "Berlin", "Moscow", "Beijing", 
-            "Cairo", "Rio de Janeiro", "Mexico City", "Toronto", "Vancouver", "Mumbai", "Bangkok", "Seoul",
-            "Madrid", "Barcelona", "Amsterdam", "Stockholm", "Oslo",
-            // US Cities (Now searchable by City, State, or Abbreviation)
-            "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Philadelphia, PA", "Phoenix, AZ", "San Antonio, TX",
+            // North America
+            "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Philadelphia, PA", "Phoenix, AZ", "San Antonio, TX",
             "San Diego, CA", "Dallas, TX", "San Jose, CA", "Austin, TX", "Jacksonville, FL", "Fort Worth, TX",
             "Columbus, OH", "Charlotte, NC", "Indianapolis, IN", "San Francisco, CA", "Seattle, WA", 
             "Denver, CO", "Las Vegas, NV", "Miami, FL", "Boston, MA", "Atlanta, GA", "Detroit, MI",
             "Minneapolis, MN", "Portland, OR", "Baltimore, MD", "Milwaukee, WI", "Nashville, TN",
-            "Birmingham, AL", // Added Birmingham for testing
+            "Reno, NV", "Mount Charleston, NV", "Birmingham, AL", "Washington, DC",
+            // States (for search clarity)
+            "California, US", "Texas, US", "Florida, US", "Illinois, US", "Nevada, US", "Michigan, US",
+            // Major Global
+            "London, UK", "Paris, FR", "Tokyo, JP", "Sydney, AU", "Dubai, AE", "Rome, IT", "Berlin, DE", 
+            "Moscow, RU", "Beijing, CN", "Cairo, EG", "Rio de Janeiro, BR", "Mexico City, MX", "Toronto, CA", 
+            "Vancouver, CA", "Mumbai, IN", "Bangkok, TH", "Seoul, KR", "Madrid, ES", "Barcelona, ES", 
+            "Amsterdam, NL", "Stockholm, SE", "Oslo, NO", "Los Remedios de Michoacan, MX"
         ];
         
         // --- STATIC IMAGE MAPPING (Guaranteed City Images) ---
         const STATIC_CITY_IMAGES = {
             'NEW YORK': 'https://images.unsplash.com/photo-1546467005-0e10b240590a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'LONDON': 'https://images.unsplash.com/photo-1533929780004-945624128521?q=80&w=1400&h=900&fit=tinysrgb',
+            'LONDON': 'https://images.unsplash.com/photo-1533929780004-945624128521?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'PARIS': 'https://images.unsplash.com/photo-1502602898624-ad4b2a8d5811?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'TOKYO': 'https://images.unsplash.com/photo-1540679776092-d96a60391d1a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'SYDNEY': 'https://images.unsplash.com/photo-1582260656515-f5be870c538a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'DUBAI': 'https://images.unsplash.com/photo-1512495679313-264639902633?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'LAS VEGAS': 'https://images.unsplash.com/photo-1550503046-e5c9a444d47c?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            // Add more common cities here for guaranteed relevant images
         };
 
+        // --- STATE MAP FOR US CITIES ---
+        const US_STATE_MAP = {
+            'AL': 'AL', 'AK': 'AK', 'AZ': 'AZ', 'AR': 'AR', 'CA': 'CA', 'CO': 'CO', 'CT': 'CT', 'DE': 'DE', 'DC': 'DC', 'FL': 'FL', 'GA': 'GA', 'HI': 'HI', 'ID': 'ID', 'IL': 'IL', 'IN': 'IN', 'IA': 'IA', 'KS': 'KS', 'KY': 'KY', 'LA': 'LA', 'ME': 'ME', 'MD': 'MD', 'MA': 'MA', 'MI': 'MI', 'MN': 'MN', 'MS
 
-        // --- APP STATE & PERSISTENCE ---
-        
-        // Functions for saving and loading settings
-        function saveSetting(key, value) {
-            localStorage.setItem(key, JSON.stringify(value));
-        }
 
-        function loadSetting(key, defaultValue) {
-            const stored = localStorage.getItem(key);
-            if (stored === null) return defaultValue;
-            try {
-                return JSON.parse(stored);
-            } catch {
-                return defaultValue;
-            }
-        }
-
-        let isCelsius = loadSetting('isCelsius', true); 
-        let isAdvanced = loadSetting('isAdvanced', false); 
-        let currentWeatherData = null;
-        let forecastWeatherData = null;
-        let airQualityData = null; 
-        let alertsData = null; 
-        let selectedForecastDay = null; 
-        const MAX_HISTORY = 5;
-
-        // --- DOM Elements ---
-        const appContainer = document.getElementById('app');
-        const cityInput = document.getElementById('cityInput');
-        const searchButton = document.getElementById('searchButton');
-        const refreshButton = document.getElementById('refreshButton'); 
-        const weatherDisplay = document.getElementById('weatherDisplay');
-        const forecastSection = document.getElementById('forecastSection');
-        const forecastDisplay = document.getElementById('forecastDisplay');
-        const hourlyForecastSection = document.getElementById('hourlyForecastSection'); 
-        const hourlyForecastDisplay = document.getElementById('hourlyForecastDisplay'); 
-        const hourlyForecastTitle = document.getElementById('hourlyForecastTitle'); 
-        const messageArea = document.getElementById('messageArea');
-        const celsiusBtn = document.getElementById('celsiusBtn');
-        const fahrenheitBtn = document.getElementById('fahrenheitBtn');
-        const basicBtn = document.getElementById('basicBtn');
-        const advancedBtn = document.getElementById('advancedBtn');
-        const historyDisplay = document.getElementById('historyDisplay');
-        const loadingSkeleton = document.getElementById('loadingSkeleton');
-        const welcomeState = document.getElementById('welcomeState');
-        const clearHistoryBtn = document.getElementById('clearHistoryBtn'); 
-        const aboutBtn = document.getElementById('aboutBtn'); 
-        const aboutModal = document.getElementById('aboutModal'); 
-        const closeModalBtn = document.getElementById('closeModalBtn'); 
-        const insightCard = document.getElementById('insightCard');
-        const insightContent = document.getElementById('insightContent');
-        const insightLoading = document.getElementById('insightLoading');
-        const alertBanner = document.getElementById('alertBanner'); 
-        const alertMessage = document.getElementById('alertMessage');
-        const mapViewContainer = document.getElementById('mapViewContainer'); 
-        const mapViewLink = document.getElementById('mapViewLink'); 
-
-
-        // --- CORE UTILITY FUNCTIONS (Must be defined early) ---
-
-        // Function to display messages (errors or loading)
-        function showMessage(text, isError = false) {
-            weatherDisplay.classList.add('hidden');
-            forecastSection.classList.add('hidden'); 
-            hourlyForecastSection.classList.add('hidden'); 
-            welcomeState.classList.add('hidden'); 
-            loadingSkeleton.classList.add('hidden');
-            insightCard.classList.add('hidden');
-            alertBanner.classList.add('hidden'); 
-            mapViewContainer.classList.add('hidden'); 
-
-            messageArea.textContent = text;
-            messageArea.style.display = 'block';
-            messageArea.className = `text-center font-medium mb-4 ${isError ? 'text-red-500' : 'text-gray-600'}`;
-
-            if (isError) {
-                searchButton.classList.add('error-shake');
-                appContainer.style.border = '2px solid #f87171';
-                setTimeout(() => {
-                    searchButton.classList.remove('error-shake');
-                    appContainer.style.border = 'none';
-                }, 500);
-            }
-        }
-
-        // AQI Data Map 
-        function getAqiInfo(aqi) {
-            let color, description;
-            switch (aqi) {
-                case 1:
-                    color = 'bg-green-500'; description = 'Good';
-                    break;
-                case 2:
-                    color = 'bg-yellow-500'; description = 'Fair';
-                    break;
-                case 3:
-                    color = 'bg-orange-500'; description = 'Moderate';
-                    break;
-                case 4:
-                    color = 'bg-red-500'; description = 'Poor';
-                    break;
-                case 5:
-                    color = 'bg-purple-600'; description = 'Very Poor';
-                    break;
-                default:
-                    color = 'bg-gray-400'; description = 'N/A';
-            }
-            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color} text-white">${description} (${aqi})</span>`;
-        }
-
-        // Function to clear messages
-        function clearMessage() {
-            messageArea.textContent = '';
-            messageArea.style.display = 'none';
-        }
-
-        // Function to show the loading state
-        function showLoading() {
-            welcomeState.classList.add('hidden'); 
-            weatherDisplay.classList.add('hidden');
-            forecastSection.classList.add('hidden');
-            hourlyForecastSection.classList.add('hidden');
-            mapViewContainer.classList.add('hidden'); 
-            messageArea.style.display = 'none';
-            insightCard.classList.add('hidden'); 
-            alertBanner.classList.add('hidden');
-            loadingSkeleton.classList.remove('hidden');
-        }
-
-        // Function to show the welcome state
-        function showWelcome(lastCity = null) {
-            loadingSkeleton.classList.add('hidden');
-            weatherDisplay.classList.add('hidden');
-            forecastSection.classList.add('hidden');
-            hourlyForecastSection.classList.add('hidden');
-            mapViewContainer.classList.add('hidden'); 
-            messageArea.style.display = 'none';
-            insightCard.classList.add('hidden');
-            alertBanner.classList.add('hidden');
-            searchButton.style.display = 'block';
-            refreshButton.style.display = 'none';
-            welcomeState.classList.remove('hidden');
-            
-            if (lastCity) {
-                document.querySelector('#welcomeState h2').textContent = 'Welcome back to AeroView!';
-                document.querySelector('#welcomeState p').textContent = `Ready to check the weather for ${lastCity} again?`;
-            } else {
-                 document.querySelector('#welcomeState h2').textContent = 'Welcome to AeroView!';
-                 document.querySelector('#welcomeState p').textContent = 'Start by searching for a city, or grant location access to see your local weather.';
-            }
-        }
-
-        // Converts Celsius to Fahrenheit
-        function toFahrenheit(celsius) {
-            return Math.round((celsius * 9/5) + 32);
-        }
-
-        // Wind Speed conversion: m/s (API default) to desired unit
-        function convertWindSpeed(metersPerSecond) {
-            if (isCelsius) {
-                // To km/h (m/s * 3.6)
-                return { value: (metersPerSecond * 3.6).toFixed(1), unit: 'km/h' };
-            } else {
-                // To mph (m/s * 2.237)
-                return { value: (metersPerSecond * 2.237).toFixed(1), unit: 'mph' };
-            }
-        }
-
-        // Formats UNIX timestamp into local time (e.g., 6:30 PM) for the city's timezone
-        function formatTime(unixTimestamp, timezoneOffset) {
-            const date = new Date((unixTimestamp + timezoneOffset) * 1000);
-            
-            // Get time components in UTC (which, combined with the offset, is the local time)
-            const hours = date.getUTCHours();
-            const minutes = date.getUTCMinutes();
-            
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const hour12 = hours % 12 || 12; // Convert 0 to 12
-
-            return `${hour12}:${minutes < 10 ? '0' + minutes : minutes} ${ampm}`;
-        }
-        
-        // Formats UNIX timestamp into local HOUR (e.g., 6 PM) for hourly forecast
-        function formatHour(unixTimestamp, timezoneOffset) {
-             const date = new Date((unixTimestamp + timezoneOffset) * 1000);
-             const hours = date.getUTCHours();
-             const ampm = hours >= 12 ? 'PM' : 'AM';
-             const hour12 = hours % 12 || 12; 
-             return `${hour12} ${ampm}`;
-        }
-        
-        // Formats Date to Day of Week
-        function formatDayOfWeek(dateString) {
-            const date = new Date(dateString);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            // Check if the date is today (for the active state selection)
-            if (date.toDateString() === today.toDateString()) {
-                return "Today";
-            }
-            return date.toLocaleDateString('en-US', { weekday: 'short' });
-        }
-
-
-        // Maps weather icon code to a specific Tailwind gradient and text color
-        function getWeatherGradient(iconCode) {
-            const code = iconCode.slice(0, 2); 
-            const isDay = iconCode.endsWith('d');
-
-            let textColor = 'text-white';
-            let gradient;
-            let shadow;
-
-            switch (code) {
-                case '01': // Clear sky
-                    gradient = isDay ? 'from-yellow-300 to-orange-400' : 'from-gray-700 to-gray-900';
-                    shadow = isDay ? 'shadow-yellow-500/50' : 'shadow-gray-700/50';
-                    if (isDay) textColor = 'text-gray-900';
-                    break;
-                case '02': // Few clouds
-                case '03': // Scattered clouds
-                    gradient = isDay ? 'from-blue-300 to-cyan-500' : 'from-gray-600 to-gray-800';
-                    shadow = 'shadow-cyan-500/50';
-                    if (isDay) textColor = 'text-gray-900';
-                    break;
-                case '04': // Broken clouds
-                    gradient = 'from-gray-400 to-slate-500';
-                    shadow = 'shadow-slate-500/50';
-                    textColor = 'text-gray-900';
-                    break;
-                case '09': // Shower rain
-                case '10': // Rain
-                    gradient = 'from-blue-500 to-indigo-700';
-                    shadow = 'shadow-indigo-600/50';
-                    break;
-                case '11': // Thunderstorm
-                    gradient = 'from-gray-700 to-purple-800';
-                    shadow = 'shadow-purple-600/50';
-                    break;
-                case '13': // Snow
-                    gradient = 'from-white to-blue-300';
-                    shadow = 'shadow-blue-400/50';
-                    textColor = 'text-gray-900';
-                    break;
-                case '50': // Mist
-                    gradient = 'from-gray-300 to-slate-400';
-                    shadow = 'shadow-slate-400/50';
-                    textColor = 'text-gray-900';
-                    break;
-                default:
-                    gradient = 'from-indigo-500 to-blue-600';
-                    shadow = 'shadow-indigo-500/50';
-                    break;
-            }
-            return { gradient, shadow, textColor };
-        }
-        
-        // --- ANIMATED ICON GENERATION ---
-        function getAnimatedIcon(iconCode, color) {
-            const size = "100px";
-            const code = iconCode.slice(0, 2); 
-            const isDay = iconCode.endsWith('d');
-            const defaultColor = color || "currentColor";
-            const sunColor = isDay ? "#ffc107" : "#fdd835"; // Yellow for day, lighter for moon/night sun
-            const cloudColor = "#ffffff";
-            
-            let iconSvg = '';
-
-            // Helper for cloud shape
-            const cloud = `<circle cx="30" cy="50" r="10" fill="${cloudColor}" class="animated-cloud"></circle>
-                           <circle cx="45" cy="50" r="12" fill="${cloudColor}" class="animated-cloud" style="animation-delay: 0.5s;"></circle>
-                           <circle cx="58" cy="45" r="8" fill="${cloudColor}" class="animated-cloud" style="animation-delay: 1s;"></circle>`;
-
-            // Helper for sun/moon shape
-            const sun = `<circle cx="30" cy="30" r="12" fill="${sunColor}" class="animated-sun"></circle>`;
-            const moon = `<path d="M 35 25 a 10 10 0 1 0 0 20 a 10 10 0 1 1 0 -20" fill="#cfd8dc"/>`; // Simple moon shape
-
-            switch (code) {
-                case '01': // Clear Sky (Sun or Moon)
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 60 60">
-                        ${isDay ? sun : moon}
-                    </svg>`;
-                    break;
-                case '02': // Few Clouds (Sun/Moon + Cloud)
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 80 80">
-                        <g transform="translate(10, 0)">
-                            ${isDay ? sun : moon}
-                        </g>
-                        <g transform="translate(15, 15)">
-                            ${cloud}
-                        </g>
-                    </svg>`;
-                    break;
-                case '03': // Scattered Clouds
-                case '04': // Broken Clouds (Clouds only)
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 100 80">
-                        <g transform="translate(0, 10)">
-                            ${cloud}
-                            <circle cx="70" cy="55" r="10" fill="${cloudColor}" style="opacity: 0.7; animation-delay: 1.5s;" class="animated-cloud"></circle>
-                        </g>
-                    </svg>`;
-                    break;
-                case '09': // Shower Rain
-                case '10': // Rain
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 80 80">
-                        <g transform="translate(15, 15)">
-                            ${isDay ? sun : moon}
-                        </g>
-                        <g transform="translate(15, 25)">
-                            ${cloud}
-                        </g>
-                        <g fill="#4fc3f7" transform="translate(20, 30)">
-                            <rect x="25" y="40" width="2" height="10" class="animated-rain" style="animation-duration: 0.8s;"></rect>
-                            <rect x="35" y="40" width="2" height="10" class="animated-rain" style="animation-duration: 1.2s; animation-delay: 0.4s;"></rect>
-                            <rect x="45" y="40" width="2" height="10" class="animated-rain" style="animation-duration: 1s; animation-delay: 0.2s;"></rect>
-                        </g>
-                    </svg>`;
-                    break;
-                case '11': // Thunderstorm (Rain Cloud + Lightning)
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 80 80">
-                        <g transform="translate(15, 25)">
-                            ${cloud}
-                        </g>
-                        <g fill="#ffeb3b" transform="translate(20, 30)">
-                            <polygon points="35,45 40,55 35,55 40,65 35,60 40,60" class="animated-shake" style="animation: shake 0.5s infinite alternate;"></polygon>
-                        </g>
-                    </svg>`;
-                    break;
-                case '13': // Snow (Snow Cloud)
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 80 80">
-                        <g transform="translate(15, 25)">
-                            ${cloud}
-                        </g>
-                        <g fill="#e0f7fa" transform="translate(20, 40)">
-                            <circle cx="20" cy="5" r="2" class="animated-snow" style="animation-delay: 0s;"></circle>
-                            <circle cx="35" cy="5" r="2" class="animated-snow" style="animation-delay: 0.5s;"></circle>
-                            <circle cx="50" cy="5" r="2" class="animated-snow" style="animation-delay: 1s;"></circle>
-                        </g>
-                    </svg>`;
-                    break;
-                case '50': // Mist/Fog (Gray Cloud)
-                    iconSvg = `<svg width="${size}" height="${size}" viewBox="0 0 100 80">
-                        <g transform="translate(0, 10)">
-                            ${cloud.replace(/fill="[^"]*"/g, 'fill="#90a4ae"')}
-                            <rect x="5" y="60" width="80" height="10" fill="#cfd8dc" style="opacity: 0.8;"></rect>
-                        </g>
-                    </svg>`;
-                    break;
-                default:
-                    // Fallback to the OpenWeatherMap PNG for unknown or complex conditions
-                    iconSvg = `<img src="${ICON_URL}${iconCode}@4x.png" alt="Weather Icon" class="w-24 h-24 -mt-2">`;
-                    break;
-            }
-
-            // Wrap the SVG for display
-            return `<div class="w-24 h-24 flex items-center justify-center">${iconSvg}</div>`;
-        }
-        
-        // Function to set the city background using static image mapping and fallback
-        function setCityBackground(cityName) {
-            if (!cityName) return;
-
-            const normalizedCity = cityName.split(',')[0].trim().toUpperCase();
-            
-            // 1. Check for Static, Guaranteed Image
-            if (STATIC_CITY_IMAGES[normalizedCity]) {
-                document.body.style.backgroundImage = `url('${STATIC_CITY_IMAGES[normalizedCity]}')`;
-                document.body.style.backgroundColor = 'transparent'; // Ensure color is transparent if image is loaded
-                return;
-            }
-
-            // --- FALLBACK LOGIC (For all other cities) ---
-
-            const encodedCity = encodeURIComponent(normalizedCity);
-            
-            // Generate a random number based on the city hash for a stable generic photo URL
-            let hash = 0;
-            for (let i = 0; i < encodedCity.length; i++) {
-                hash = encodedCity.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const randomNumber = Math.abs(hash % 100); 
-
-            // Stable generic placeholder image
-            const placeholderUrl = `https://picsum.photos/1600/900?random=${randomNumber}`;
-
-            // Dynamic, city-specific image search query (Less reliable, used as a backup)
-            const cityImageUrl = `${CITY_IMAGE_BASE}${encodedCity},skyline,landscape,city`;
-            
-            // Immediately apply a generic, high-quality photo as a temporary, non-specific background
-            document.body.style.backgroundImage = `url('${placeholderUrl}')`;
-            document.body.style.backgroundColor = 'transparent';
-
-
-            // Attempt to fetch the actual city image (This is the unstable part, but we still try)
-            const img = new Image();
-            
-            img.onload = () => {
-                // Only update the background if the image successfully loads
-                document.body.style.backgroundImage = `url('${img.src}')`;
-            };
-            
-            // On error, the background will remain the generic placeholder image from step 3.
-            img.src = cityImageUrl;
-        }
-
-
-        // --- HISTORY & SUGGESTION FUNCTIONS ---
-        
-        function loadSearchHistory() {
-            try {
-                const history = JSON.parse(localStorage.getItem('weather_history')) || [];
-                return history.filter(h => h && h.trim().length > 0).slice(0, MAX_HISTORY);
-            } catch (e) {
-                return [];
-            }
-        }
-
-        function clearSearchHistory() {
-            localStorage.removeItem('weather_history');
-            renderSearchDropdown(); // Re-render the dropdown (it will now be empty)
-            showMessage("Search history cleared!", false);
-        }
-
-        function saveSearchHistory(city) {
-            if (!city) return;
-            city = city.trim();
-            let history = loadSearchHistory();
-            
-            history = history.filter(h => h.toLowerCase() !== city.toLowerCase());
-            history.unshift(city);
-            
-            localStorage.setItem('weather_history', JSON.stringify(history.slice(0, MAX_HISTORY)));
-            saveSetting('lastCity', city); // Save last successful search as setting
-        }
-
-        function createSuggestionItem(city, isHistory = false) {
-            const item = document.createElement('div');
-            item.textContent = city;
-            item.className = `search-item p-2 cursor-pointer hover:bg-blue-100 text-gray-700 text-sm border-b border-gray-100 last:border-b-0 ${isHistory ? 'history-entry' : 'suggestion-item'}`;
-            item.setAttribute('data-city', city);
-            return item;
-        }
-
-        function renderSearchDropdown() {
-            const query = cityInput.value.trim().toLowerCase();
-            const dropdown = historyDisplay;
-            
-            // Clear previous entries
-            dropdown.innerHTML = '';
-            
-            // Get the history header element (already defined in HTML)
-            const historyHeader = document.getElementById('historyHeader');
-            
-            // Always append historyHeader first, but keep it hidden initially if needed
-            if (historyHeader && !query.length) {
-                // To fix the issue where historyHeader disappears when moving to suggestions, 
-                // we'll keep it static in the HTML and just remove other content.
-                // We'll insert it back here if it was accidentally removed during a suggestion search.
-                
-                // Clear all children first to handle transitions from suggestions back to history
-                Array.from(dropdown.children).forEach(child => {
-                    if (child.nodeType !== 1 || child.id !== 'historyHeader') {
-                         dropdown.removeChild(child);
-                    }
-                });
-            }
-
-
-            if (query.length > 0) {
-                // --- Show Suggestions (NEW FUZZY LOGIC) ---
-                
-                // Set up regular expressions for fuzzy matching:
-                const beginsWithRegex = new RegExp(`^${query}`, 'i'); // Case-insensitive, begins with
-                const containsRegex = new RegExp(query, 'i'); // Case-insensitive, contains anywhere
-
-                const suggestions = [];
-                const matchedCities = new Set();
-                
-                // 1. Prioritize cities that START with the query
-                CITY_LIST.forEach(city => {
-                    if (beginsWithRegex.test(city)) {
-                        suggestions.push(city);
-                        matchedCities.add(city);
-                    }
-                });
-
-                // 2. Add cities that CONTAIN the query but don't start with it
-                CITY_LIST.forEach(city => {
-                    if (containsRegex.test(city) && !matchedCities.has(city)) {
-                        suggestions.push(city);
-                        matchedCities.add(city);
-                    }
-                });
-
-
-                if (suggestions.length > 0) {
-                    if (historyHeader) historyHeader.style.display = 'none'; // Hide history controls
-                    
-                    // Add a title for suggestions
-                    const title = document.createElement('div');
-                    title.textContent = "Suggestions";
-                    title.className = "p-2 text-blue-500 text-xs font-semibold border-b";
-                    dropdown.appendChild(title);
-                    
-                    suggestions.slice(0, 8).forEach(city => {
-                        dropdown.appendChild(createSuggestionItem(city, false));
-                    });
-                    dropdown.style.display = 'block';
-                } else {
-                    dropdown.style.display = 'none';
-                }
-
-            } else {
-                // --- Show History ---
-                const history = loadSearchHistory();
-                
-                // Ensure historyHeader is visible and positioned correctly for history view
-                if (historyHeader) {
-                    // Remove other suggestion/history items first
-                    Array.from(dropdown.children).forEach(child => {
-                        if (child.id !== 'historyHeader') {
-                            dropdown.removeChild(child);
-                        }
-                    });
-
-                    // Now append history items
-                    history.forEach(city => {
-                        dropdown.appendChild(createSuggestionItem(city, true));
-                    });
-                    
-                    if (history.length > 0) {
-                        historyHeader.style.display = 'flex'; 
-                        dropdown.style.display = 'block';
-                    } else {
-                        historyHeader.style.display = 'none';
-                        dropdown.style.display = 'none';
-                    }
-                }
-            }
-        }
-
-        // NEW: Function to manage the visibility of Search/Refresh buttons
-        function toggleSearchRefreshButtons() {
-            const currentCityName = currentWeatherData ? currentWeatherData.name : '';
-            const inputCity = cityInput.value.trim();
-            
-            // Use the original search term from the input, as the API might normalize it.
-            const originalSearchTerm = currentWeatherData && currentWeatherData.originalSearch ? currentWeatherData.originalSearch.toLowerCase() : currentCityName.toLowerCase();
-            
-            const isMatch = inputCity.toLowerCase() === currentCityName.toLowerCase() || inputCity.toLowerCase() === originalSearchTerm;
-
-            if (isMatch && currentCityName.length > 0) {
-                // Input matches the currently displayed city name (show Refresh)
-                searchButton.style.display = 'none';
-                refreshButton.style.display = 'block';
-            } else {
-                // Input is being edited, or is empty, or doesn't match loaded city (show Search)
-                searchButton.style.display = 'block';
-                refreshButton.style.display = 'none';
-            }
-        }
-
-
-        // --- CORE FETCH LOGIC ---
-
-        // Fetches weather by city name
-        async function fetchByCity(city) {
-            const currentApiUrl = `${CURRENT_WEATHER_URL}?q=${city}&units=metric&appid=${OPENWEATHER_API_KEY}`;
-            const forecastApiUrl = `${FORECAST_URL}?q=${city}&units=metric&appid=${OPENWEATHER_API_KEY}`;
-            return Promise.all([fetch(currentApiUrl), fetch(forecastApiUrl)]);
-        }
-
-        // Fetches weather by geolocation coordinates
-        async function fetchByCoords(lat, lon) {
-            const currentApiUrl = `${CURRENT_WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}`;
-            const forecastApiUrl = `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}`;
-            const pollutionApiUrl = `${AIR_POLLUTION_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`; 
-
-            // The One Call API is used here to get alerts and is fetched separately
-            const oneCallApiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,hourly,daily&appid=${OPENWEATHER_API_KEY}`;
-
-            return Promise.all([
-                fetch(currentApiUrl), 
-                fetch(forecastApiUrl), 
-                fetch(pollutionApiUrl), 
-                fetch(oneCallApiUrl)
-            ]);
-        }
-
-
-        // Main function to fetch all weather data
-        async function getWeather(useLocation = false) {
-            const originalCity = cityInput.value.trim();
-            
-            if (!useLocation && !originalCity) {
-                showMessage("Please enter a city name.", true);
-                return;
-            }
-
-            if (OPENWEATHER_API_KEY.length < 30) {
-                 showMessage("ERROR: OpenWeather API key seems incomplete. Please check the 'OPENWEATHER_API_KEY' variable.", true);
-                return;
-            }
-
-            showLoading(); // Show the skeleton loader
-            searchButton.disabled = true;
-            refreshButton.disabled = true; // Disable both during fetch
-            searchButton.classList.add('opacity-50');
-            refreshButton.classList.add('opacity-50');
-
-            try {
-                let currentResponse, forecastResponse, pollutionResponse, oneCallResponse;
-                let cityToSearch = originalCity;
-                
-                // FIX: When searching from a suggestion (e.g., "Minneapolis, MN"), 
-                // we explicitly add the country code for the Geo API call to ensure accuracy.
-                if (cityToSearch.includes(',')) {
-                    const parts = cityToSearch.split(',').map(p => p.trim());
-                    // This handles cases like "City, ST" (US) or "City, Country" (Global)
-                    if (parts.length >= 2) {
-                        cityToSearch = `${parts[0]},${parts[1]},US`;
-                    }
-                }
-
-                if (!useLocation && originalCity) {
-                    // Fetch city coordinates first for AQI/Alerts (requires coordinates)
-                    const coordResponse = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${cityToSearch}&limit=1&appid=${OPENWEATHER_API_KEY}`);
-                    const coords = await coordResponse.json();
-
-                    if (!coords || coords.length === 0) {
-                         showMessage(`City not found: ${originalCity}. Please try searching for a different city.`, true);
-                         return;
-                    }
-                    const { lat, lon } = coords[0];
-
-                    // Fetch all data using coordinates
-                    [currentResponse, forecastResponse, pollutionResponse, oneCallResponse] = await fetchByCoords(lat, lon);
-                } else {
-                    return; 
-                }
-                
-                // --- Parse All Responses ---
-                currentWeatherData = await currentResponse.json();
-                forecastWeatherData = await forecastResponse.json();
-                airQualityData = await pollutionResponse.json(); 
-                alertsData = await oneCallResponse.json(); 
-
-                // Store original search term for button visibility logic
-                currentWeatherData.originalSearch = originalCity;
-
-                if (currentWeatherData.cod == 401 || forecastWeatherData.cod == 401) {
-                    showMessage("API Key Error: Your OpenWeatherMap key is either inactive or invalid. Please check your OpenWeatherMap dashboard.", true);
-                    return;
-                }
-                
-                if (currentWeatherData.cod !== 200 || forecastWeatherData.cod !== "200") {
-                    showMessage(`City not found: ${originalCity}. Please try searching for a different city.`, true);
-                    return;
-                }
-                
-                // Set the default selection for the hourly forecast (Today)
-                selectedForecastDay = forecastWeatherData.list[0].dt_txt.split(' ')[0];
-
-                clearMessage();
-                displayAlerts(alertsData); 
-                displayCurrentWeather(currentWeatherData);
-                displayForecastSelectors(forecastWeatherData); 
-                displayHourlyForecast(forecastWeatherData, selectedForecastDay); 
-                displayMapView(currentWeatherData.coord.lat, currentWeatherData.coord.lon); 
-
-                generateWeatherInsight(currentWeatherData);
-
-                saveSearchHistory(originalCity); 
-                setCityBackground(currentWeatherData.name); 
-                cityInput.value = originalCity; 
-
-            } catch (error) {
-                console.error("Fetch error:", error);
-                showMessage("A network error occurred while fetching weather data. Please check your internet connection.", true);
-            } finally {
-                loadingSkeleton.classList.add('hidden');
-                searchButton.disabled = false;
-                refreshButton.disabled = false;
-                searchButton.classList.remove('opacity-50');
-                refreshButton.classList.remove('opacity-50');
-                toggleSearchRefreshButtons();
-            }
-        }
-
-        // Geolocation handler that calls getWeather with coordinates
-        async function initGeolocation(lat, lon) {
-             showLoading();
-             searchButton.disabled = true;
-             refreshButton.disabled = true;
-             searchButton.classList.add('opacity-50');
-             refreshButton.classList.add('opacity-50');
-
-            try {
-                // Fetch all data using coordinates
-                const responses = await fetchByCoords(lat, lon);
-
-                // --- Parse All Responses ---
-                const [currentResponse, forecastResponse, pollutionResponse, oneCallResponse] = responses;
-                
-                currentWeatherData = await currentResponse.json();
-                forecastWeatherData = await forecastResponse.json();
-                airQualityData = await pollutionResponse.json();
-                alertsData = await oneCallResponse.json();
-
-                // Store original search term for button visibility logic
-                currentWeatherData.originalSearch = currentWeatherData.name;
-
-                if (currentWeatherData.cod == 401 || forecastWeatherData.cod == 401) {
-                    showMessage("API Key Error: Your OpenWeatherMap key is either inactive or invalid. Please check your OpenWeatherMap dashboard.", true);
-                    return;
-                }
-                
-                if (currentWeatherData.cod !== 200 || forecastWeatherData.cod !== "200") {
-                    showMessage(`Weather data not found for your coordinates.`, true);
-                    return;
-                }
-                
-                selectedForecastDay = forecastWeatherData.list[0].dt_txt.split(' ')[0]; // Default to Today
-                cityInput.value = currentWeatherData.name;
-                
-                clearMessage();
-                displayAlerts(alertsData); 
-                displayCurrentWeather(currentWeatherData);
-                displayForecastSelectors(forecastWeatherData); 
-                displayHourlyForecast(forecastWeatherData, selectedForecastDay); 
-                displayMapView(currentWeatherData.coord.lat, currentWeatherData.coord.lon); 
-
-                generateWeatherInsight(currentWeatherData);
-                saveSearchHistory(currentWeatherData.name);
-                setCityBackground(currentWeatherData.name); 
-
-            } catch (error) {
-                console.error("Geolocation fetch error:", error);
-                showMessage("Failed to get weather for your location. Please search manually.", true);
-            } finally {
-                loadingSkeleton.classList.add('hidden');
-                searchButton.disabled = false;
-                refreshButton.disabled = false;
-                searchButton.classList.remove('opacity-50');
-                refreshButton.classList.remove('opacity-50');
-                toggleSearchRefreshButtons();
-            }
-        }
-        
-        // --- NEW: MAP VIEW FUNCTION ---
-        function displayMapView(lat, lon) {
-            // This URL structure is designed to open Google Maps with a 3D perspective
-            // t=k (satellite view), data=!3m1!1e3 (3D buildings), !4m2!3m1!1s0 (pitch/bearing)
-            // The 60d is a high pitch (looking down), the 45y is the rotation, and 1000m is the height
-            const mapUrl = `https://www.google.com/maps/place/@${lat},${lon},1000m/data=!3m1!1e3?entry=ttu`;
-            
-            mapViewLink.href = mapUrl;
-            mapViewContainer.classList.remove('hidden');
-        }
-
-
-        // --- ALERTS DISPLAY FUNCTION ---
-        function displayAlerts(data) {
-            if (data.alerts && data.alerts.length > 0) {
-                // We only display the first alert for simplicity
-                const alert = data.alerts[0];
-                alertMessage.textContent = `${alert.event}: ${alert.description.substring(0, 100)}...`;
-                alertBanner.classList.remove('hidden');
-            } else {
-                alertBanner.classList.add('hidden');
-            }
-        }
-
-
-        // --- AI GENERATION LOGIC ---
-
-        async function generateWeatherInsight(data) {
-            if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE" || GEMINI_API_KEY.length < 30) {
-                 insightCard.classList.remove('hidden');
-                 insightLoading.classList.add('hidden');
-                 insightContent.textContent = "AI Insight unavailable: Please replace 'YOUR_GEMINI_API_KEY_HERE' in the code with a valid Gemini API key.";
-                 return;
-            }
-
-            insightCard.classList.remove('hidden');
-            insightContent.textContent = '';
-            insightLoading.classList.remove('hidden');
-
-            const city = data.name;
-            const tempC = Math.round(data.main.temp);
-            const feelsLikeC = Math.round(data.main.feels_like);
-            const description = data.weather[0].description;
-            const windSpeedMps = data.wind.speed; // m/s
-            const windKmH = (windSpeedMps * 3.6).toFixed(1); // km/h
-
-            const userQuery = `Analyze the weather data for ${city}: Current temperature is ${tempC}°C (feels like ${feelsLikeC}°C), with ${description} and wind speeds of ${windKmH} km/h. Provide a concise, single-paragraph insight that tells the user what the weather means for their day (e.g., 'Perfect day for a walk,' 'Dress warmly,' or 'Expect heavy wind and rain.'). Do not use markdown formatting.`;
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: {
-                    parts: [{ text: "You are a friendly, conversational weather insight assistant for a modern app. Summarize the provided weather conditions into a single, helpful, and concise paragraph. Keep the tone light and actionable." }]
-                }
-            };
-            
-            // Implement exponential backoff for API robustness
-            const maxRetries = 3;
-            let retryDelay = 1000;
-            let responseText = "Failed to generate AI insight.";
-
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(GEMINI_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        if (response.status === 429 && i < maxRetries - 1) { // Too Many Requests
-                            await new Promise(resolve => setTimeout(resolve, retryDelay));
-                            retryDelay *= 2; // Exponential backoff
-                            continue;
-                        }
-                        // This handles the 403 error specifically for the AI feature
-                        if (response.status === 403) {
-                             responseText = "AI Insight temporarily unavailable: API error 403 (Forbidden). Check if your Gemini API key is valid and enabled for the service.";
-                        } else {
-                             responseText = `AI Insight temporarily unavailable: API error: ${response.status}`;
-                        }
-                        throw new Error(`API error: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || "No insight generated.";
-                    break; // Success, exit loop
-
-                } catch (error) {
-                    console.error("Gemini API call failed:", error);
-                    if (i === maxRetries - 1) break; // Last retry failed
-                    await new Promise(resolve => setTimeout(resolve, retryDelay));
-                    retryDelay *= 2;
-                }
-            }
-
-            insightLoading.classList.add('hidden');
-            insightContent.textContent = responseText;
-        }
-
-        // --- DISPLAY FUNCTIONS ---
-
-        function toggleUnits(unit) {
-            if (unit === 'C' && !isCelsius) {
-                isCelsius = true;
-            } else if (unit === 'F' && isCelsius) {
-                isCelsius = false;
-            } else {
-                return;
-            }
-            saveSetting('isCelsius', isCelsius); // Save setting
-            
-            // Update button styles
-            celsiusBtn.classList.toggle('unit-active', isCelsius);
-            celsiusBtn.classList.toggle('unit-inactive', !isCelsius);
-            fahrenheitBtn.classList.toggle('unit-active', !isCelsius);
-            fahrenheitBtn.classList.toggle('unit-inactive', isCelsius);
-
-            // Re-render display if data is available
-            if (currentWeatherData) {
-                // Rerender all data to reflect new units
-                displayCurrentWeather(currentWeatherData);
-                displayForecastSelectors(forecastWeatherData); // Re-render selectors to update temps
-                displayHourlyForecast(forecastWeatherData, selectedForecastDay);
-            }
-        }
-
-        // NEW: Function to toggle the detail level
-        function toggleDetail(isAdv) {
-            if (isAdvanced === isAdv) return;
-
-            isAdvanced = isAdv;
-            saveSetting('isAdvanced', isAdvanced); // Save setting
-            
-            // Update button styles
-            basicBtn.classList.toggle('unit-active', !isAdvanced);
-            basicBtn.classList.toggle('unit-inactive', isAdvanced);
-            advancedBtn.classList.toggle('unit-active', isAdvanced);
-            advancedBtn.classList.toggle('unit-inactive', !isAdvanced);
-
-            // Re-render display if data is available
-            if (currentWeatherData) {
-                // Rerender current data to reflect new display options
-                displayCurrentWeather(currentWeatherData);
-            }
-        }
-        
-        // Function to render the current weather data in the UI
-        function displayCurrentWeather(data) {
-            loadingSkeleton.classList.add('hidden'); // Ensure skeleton is hidden
-            welcomeState.classList.add('hidden'); 
-            weatherDisplay.classList.remove('hidden');
-            mapViewContainer.classList.remove('hidden'); // NEW
-
-            const unitSymbol = isCelsius ? '°C' : '°F';
-            const tempFormatter = isCelsius ? Math.round : toFahrenheit;
-            
-            // Data for NEW Advanced Details
-            const pressure = data.main.pressure;
-            const visibilityM = data.visibility || 10000;
-            const aqiData = airQualityData && airQualityData.list ? airQualityData.list[0] : null; 
-
-            // Apply conversions
-            const temp = tempFormatter(data.main.temp);
-            const feelsLike = tempFormatter(data.main.feels_like);
-            const tempMin = tempFormatter(data.main.temp_min);
-            const tempMax = tempFormatter(data.main.temp_max);
-
-            // Wind speed conversion
-            const wind = convertWindSpeed(data.wind.speed);
-
-            // Time formatting
-            const sunriseTime = formatTime(data.sys.sunrise, data.timezone);
-            const sunsetTime = formatTime(data.sys.sunset, data.timezone);
-            
-            const description = data.weather[0].description.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-            const iconCode = data.weather[0].icon;
-            const humidity = data.main.humidity;
-
-            // Dynamic background and color
-            const { gradient, shadow, textColor } = getWeatherGradient(iconCode);
-            weatherDisplay.className = `text-center p-6 bg-gradient-to-br ${gradient} ${textColor} rounded-3xl shadow-xl ${shadow} transform transition-all duration-500 scale-100 hover:scale-[1.02]`;
-
-            // Get the animated icon HTML
-            const animatedIcon = getAnimatedIcon(iconCode, textColor);
-
-            // --- BUILD DETAIL ROWS ---
-            let detailRowsHtml = '';
-
-            // 1. Always include the three Basic rows
-            detailRowsHtml += `
-                <div class="flex flex-col">
-                    <span class="text-sm font-light opacity-80">Feels Like</span>
-                    <span class="text-lg font-semibold">${feelsLike}${unitSymbol}</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-sm font-light opacity-80">Humidity</span>
-                    <span class="text-lg font-semibold">${humidity}%</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-sm font-light opacity-80">Wind Speed</span>
-                    <span class="text-lg font-semibold">${wind.value} ${wind.unit}</span>
-                </div>
-            `;
-
-            // 2. Conditionally append Advanced rows (NEW DETAILS ADDED)
-            if (isAdvanced) {
-                // Visibility conversion (meters to km or miles)
-                let visibilityValue;
-                let visibilityUnit;
-                if (isCelsius) {
-                    visibilityValue = (visibilityM / 1000).toFixed(1);
-                    visibilityUnit = 'km';
-                } else {
-                    visibilityValue = (visibilityM / 1609.34).toFixed(1); // meters to miles
-                    visibilityUnit = 'mi';
-                }
-                
-                detailRowsHtml += `
-                    <div class="flex flex-col">
-                        <span class="text-sm font-light opacity-80">Min/Max Temp</span>
-                        <span class="text-lg font-semibold">${tempMin}${unitSymbol} / ${tempMax}${unitSymbol}</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-light opacity-80">Pressure</span>
-                        <span class="text-lg font-semibold">${pressure} hPa</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-light opacity-80">Visibility</span>
-                        <span class="text-lg font-semibold">${visibilityValue} ${visibilityUnit}</span>
-                    </div>
-                `;
-
-                // AQI Row 
-                if (aqiData) {
-                    const aqiInfo = getAqiInfo(aqiData.main.aqi);
-                    detailRowsHtml += `
-                        <div class="flex flex-col col-span-2 md:col-span-1">
-                            <span class="text-sm font-light opacity-80 mb-1">Air Quality Index (AQI)</span>
-                            ${aqiInfo}
-                        </div>
-                    `;
-                }
-
-                detailRowsHtml += `
-                    <div class="flex flex-col">
-                        <span class="text-sm font-light opacity-80">Sunrise</span>
-                        <span class="text-lg font-semibold">${sunriseTime}</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-light opacity-80">Sunset</span>
-                        <span class="text-lg font-semibold">${sunsetTime}</span>
-                    </div>
-                `;
-            }
-
-
-            // Template for the weather card content
-            weatherDisplay.innerHTML = `
-                <div class="mb-4">
-                    <h2 class="text-4xl font-extrabold mb-1 flex items-center justify-center">
-                        ${data.name}, ${data.sys.country}
-                    </h2>
-                    <p class="text-lg font-light">${description}</p>
-                </div>
-
-                <div class="flex items-center justify-center mb-6">
-                    ${animatedIcon}
-                    <span class="text-7xl font-extrabold ml-2">${temp}${unitSymbol}</span>
-                </div>
-
-                <div class="grid grid-cols-2 ${isAdvanced ? 'md:grid-cols-3' : ''} gap-4 text-left border-t border-current border-opacity-30 pt-4">
-                    ${detailRowsHtml}
-                </div>
-            `;
-
-            weatherDisplay.classList.remove('hidden');
-        }
-        
-        // NEW: Function to display the selected hourly forecast (used for both Today and future days)
-        function displayHourlyForecast(data, dateKey) {
-            hourlyForecastDisplay.innerHTML = '';
-            
-            const hourlyReadings = data.list.filter(reading => reading.dt_txt.startsWith(dateKey));
-            
-            // Set the title
-            const dayName = formatDayOfWeek(dateKey);
-            hourlyForecastTitle.textContent = `${dayName} Hourly Forecast`;
-
-            const tempFormatter = isCelsius ? Math.round : toFahrenheit;
-            const unitSymbol = isCelsius ? '°C' : '°F';
-            const timezoneOffset = data.city.timezone || 0;
-            
-            let hourlyHtml = '';
-            
-            hourlyReadings.forEach((reading, index) => {
-                const hour = formatHour(reading.dt, timezoneOffset);
-                const temp = tempFormatter(reading.main.temp);
-                const iconCode = reading.weather[0].icon;
-                
-                // Determine if this is the "Now" reading (only for Today)
-                const timeLabel = (index === 0 && dayName === 'Today') ? 'Now' : hour;
-
-                hourlyHtml += `
-                    <div class="flex flex-col items-center p-2 rounded-xl bg-gray-100 min-w-[75px] shadow-sm">
-                        <span class="text-xs font-semibold text-gray-700 mb-1">${timeLabel}</span>
-                        <img src="${ICON_URL}${iconCode}.png" alt="Weather Icon" class="w-10 h-10">
-                        <span class="text-lg font-bold text-gray-900">${temp}${unitSymbol}</span>
-                    </div>
-                `;
-            });
-            
-            hourlyForecastDisplay.innerHTML = hourlyHtml;
-            hourlyForecastSection.classList.remove('hidden');
-        }
-
-
-        // NEW: Function to render the 5-day selector buttons
-        function displayForecastSelectors(data) {
-            forecastDisplay.innerHTML = '';
-            
-            const dailyData = data.list.reduce((acc, reading) => {
-                const dateKey = reading.dt_txt.split(' ')[0];
-                if (!acc[dateKey]) {
-                    acc[dateKey] = { temps: [], icon: null, date: new Date(reading.dt * 1000), dateKey: dateKey };
-                }
-                acc[dateKey].temps.push(reading.main.temp);
-                if (reading.dt_txt.includes("12:00:00")) {
-                     acc[dateKey].icon = reading.weather[0].icon;
-                }
-                return acc;
-            }, {});
-
-            // Take the next 5 days including today (6 total for display)
-            const forecastDays = Object.values(dailyData).slice(0, 5); 
-
-            const unitSymbol = isCelsius ? '°C' : '°F'; 
-            const tempFormatter = isCelsius ? Math.round : toFahrenheit;
-
-            forecastDays.forEach(day => {
-                const minTempC = Math.min(...day.temps);
-                const maxTempC = Math.max(...day.temps);
-
-                const minTemp = tempFormatter(minTempC);
-                const maxTemp = tempFormatter(maxTempC);
-
-                const dayOfWeek = formatDayOfWeek(day.dateKey);
-                const iconCode = day.icon;
-
-                const isActive = day.dateKey === selectedForecastDay;
-
-                const dayButton = document.createElement('button');
-                dayButton.className = `forecast-day flex flex-col items-center p-2 rounded-xl shadow-md transition hover:bg-blue-100 transform hover:scale-105 ${isActive ? 'forecast-day-active' : 'bg-gray-100'}`;
-                dayButton.setAttribute('data-date-key', day.dateKey);
-
-                dayButton.innerHTML = `
-                    <span class="text-base font-bold text-gray-800 mb-1">${dayOfWeek}</span>
-                    <img src="${ICON_URL}${iconCode}.png" alt="Weather Icon" class="w-10 h-10">
-                    <span class="text-sm font-medium text-gray-800">${maxTemp}° / ${minTemp}${unitSymbol.substring(1)}</span>
-                `;
-                forecastDisplay.appendChild(dayButton);
-            });
-
-            forecastSection.classList.remove('hidden');
-        }
-        
-        // NEW: Event handler for clicking a forecast day
-        function handleDaySelect(e) {
-            const button = e.target.closest('.forecast-day');
-            if (!button || !forecastWeatherData) return;
-            
-            // Reset active state for all buttons
-            document.querySelectorAll('.forecast-day').forEach(btn => {
-                btn.classList.remove('forecast-day-active');
-                btn.classList.add('bg-gray-100');
-            });
-
-            // Set new active state
-            button.classList.add('forecast-day-active');
-            button.classList.remove('bg-gray-100');
-            
-            selectedForecastDay = button.getAttribute('data-date-key');
-            
-            // Re-render the hourly section with the selected day's data
-            displayHourlyForecast(forecastWeatherData, selectedForecastDay);
-        }
-        
-
-        // --- EVENT LISTENERS & INITIALIZATION ---
-
-        searchButton.addEventListener('click', getWeather);
-        refreshButton.addEventListener('click', getWeather); 
-        cityInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                getWeather();
-            }
-        });
-
-        // Unit Toggle Listeners
-        celsiusBtn.addEventListener('click', () => toggleUnits('C'));
-        fahrenheitBtn.addEventListener('click', () => toggleUnits('F'));
-        
-        // Detail Toggle Listeners 
-        basicBtn.addEventListener('click', () => toggleDetail(false));
-        advancedBtn.addEventListener('click', () => toggleDetail(true));
-        
-        // Forecast Day Selector Listener (delegation)
-        forecastDisplay.addEventListener('click', handleDaySelect);
-        
-        // --- Input Listener for Suggestions and Button Toggle ---
-        cityInput.addEventListener('input', () => {
-             renderSearchDropdown();
-             toggleSearchRefreshButtons();
-        }); 
-
-        // History and Suggestion Dropdown Listeners
-        cityInput.addEventListener('focus', () => {
-             renderSearchDropdown(); // Show history/suggestions on focus
-             historyDisplay.style.display = 'block'; 
-        });
-
-        cityInput.addEventListener('blur', () => {
-            // Delay hide to allow click on history/suggestion item to register
-            setTimeout(() => {
-                historyDisplay.style.display = 'none';
-            }, 200);
-        });
-
-        historyDisplay.addEventListener('click', (e) => {
-            if (e.target.classList.contains('search-item')) { 
-                const city = e.target.getAttribute('data-city');
-                cityInput.value = city;
-                getWeather();
-                cityInput.blur();
-            }
-        });
-        
-        // Clear History Listener
-        clearHistoryBtn.addEventListener('click', clearSearchHistory);
-
-        // Modal Listeners
-        aboutBtn.addEventListener('click', () => {
-            aboutModal.classList.remove('hidden');
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            aboutModal.classList.add('hidden');
-        });
-        
-        aboutModal.addEventListener('click', (e) => {
-            if(e.target === aboutModal) {
-                 aboutModal.classList.add('hidden');
-            }
-        });
-
-
-        // Initial Geolocation and Persistence Load Check
-        window.onload = () => {
-             // 1. Load Persistence Settings and update UI buttons
-             // FIX: Default isCelsius to false (Fahrenheit) if nothing is saved
-             isCelsius = loadSetting('isCelsius', false);
-             isAdvanced = loadSetting('isAdvanced', false);
-             
-             // Apply settings immediately. The toggleUnits logic handles updating the buttons correctly.
-             toggleUnits(isCelsius ? 'C' : 'F'); 
-             toggleDetail(isAdvanced); 
-             
-             // 2. Load Last City
-             const lastCity = loadSetting('lastCity', null);
-
-             // 3. Initial Load Sequence
-             renderSearchDropdown(); 
-             
-             if (OPENWEATHER_API_KEY.length < 30) {
-                 showMessage("Welcome! Your OpenWeatherMap API key is short or missing. Please ensure it is correctly entered in the code.", true);
-                 showWelcome(); 
-             } else if (lastCity) {
-                 // Load last city immediately without geolocation
-                 cityInput.value = lastCity;
-                 getWeather();
-             } else if (navigator.geolocation) {
-                 showMessage("Awaiting location permission to load local weather...", false);
-                 navigator.geolocation.getCurrentPosition(
-                     (position) => {
-                         const lat = position.coords.latitude;
-                         const lon = position.coords.longitude;
-                         initGeolocation(lat, lon);
-                     },
-                     (error) => {
-                         console.log("Geolocation failed or denied:", error.message);
-                         showMessage("Location access denied. Please search for a city.", true);
-                         showWelcome(); 
-                     }
-                 );
-             } else {
-                showWelcome(); 
-             }
-        };
-
-    </script>
-</body>
-</html>
 
 
 
