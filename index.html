@@ -316,13 +316,18 @@
 
     <script>
         // --- API CONFIGURATION ---
-        const API_KEY = "9fcf1e73c7dc66afb1e248c5ef3bdbb3"; 
+        const OPENWEATHER_API_KEY = "9fcf1e73c7dc66afb1e248c5ef3bdbb3"; 
+        
+        // !!! IMPORTANT !!!
+        // Gemini API Key provided by the user: AIzaSyDraNdjH386L-xPRwPD7VDZejiQPfI_7BM
+        const GEMINI_API_KEY = "AIzaSyDraNdjH386L-xPRwPD7VDZejiQPfI_7BM";
+        
         const CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
         const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
         const ICON_URL = "https://openweathermap.org/img/wn/";
         // Base URL for dynamic image search (fallback)
         const CITY_IMAGE_BASE = "https://source.unsplash.com/random/1600x900/?";
-        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
         const AIR_POLLUTION_URL = "https://api.openweathermap.org/data/2.5/air_pollution"; // NEW
         
         // --- STATIC CITY LIST FOR SUGGESTIONS (FIXED US CITIES WITH STATES) ---
@@ -343,7 +348,7 @@
         // --- STATIC IMAGE MAPPING (Guaranteed City Images) ---
         const STATIC_CITY_IMAGES = {
             'NEW YORK': 'https://images.unsplash.com/photo-1546467005-0e10b240590a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'LONDON': 'https://images.unsplash.com/photo-1533929780004-945624128521?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'LONDON': 'https://images.unsplash.com/photo-1533929780004-945624128521?q=80&w=1400&h=900&fit=tinysrgb',
             'PARIS': 'https://images.unsplash.com/photo-1502602898624-ad4b2a8d5811?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'TOKYO': 'https://images.unsplash.com/photo-1540679776092-d96a60391d1a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'SYDNEY': 'https://images.unsplash.com/photo-1582260656515-f5be870c538a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
@@ -921,19 +926,19 @@
 
         // Fetches weather by city name
         async function fetchByCity(city) {
-            const currentApiUrl = `${CURRENT_WEATHER_URL}?q=${city}&units=metric&appid=${API_KEY}`;
-            const forecastApiUrl = `${FORECAST_URL}?q=${city}&units=metric&appid=${API_KEY}`;
+            const currentApiUrl = `${CURRENT_WEATHER_URL}?q=${city}&units=metric&appid=${OPENWEATHER_API_KEY}`;
+            const forecastApiUrl = `${FORECAST_URL}?q=${city}&units=metric&appid=${OPENWEATHER_API_KEY}`;
             return Promise.all([fetch(currentApiUrl), fetch(forecastApiUrl)]);
         }
 
         // Fetches weather by geolocation coordinates
         async function fetchByCoords(lat, lon) {
-            const currentApiUrl = `${CURRENT_WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-            const forecastApiUrl = `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-            const pollutionApiUrl = `${AIR_POLLUTION_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`; 
+            const currentApiUrl = `${CURRENT_WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}`;
+            const forecastApiUrl = `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}`;
+            const pollutionApiUrl = `${AIR_POLLUTION_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`; 
 
             // The One Call API is used here to get alerts and is fetched separately
-            const oneCallApiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,hourly,daily&appid=${API_KEY}`;
+            const oneCallApiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,minutely,hourly,daily&appid=${OPENWEATHER_API_KEY}`;
 
             return Promise.all([
                 fetch(currentApiUrl), 
@@ -953,8 +958,8 @@
                 return;
             }
 
-            if (API_KEY.length < 30) {
-                 showMessage("ERROR: Your API key seems incomplete. Please check the 'API_KEY' variable.", true);
+            if (OPENWEATHER_API_KEY.length < 30) {
+                 showMessage("ERROR: OpenWeather API key seems incomplete. Please check the 'OPENWEATHER_API_KEY' variable.", true);
                 return;
             }
 
@@ -980,7 +985,7 @@
 
                 if (!useLocation && originalCity) {
                     // Fetch city coordinates first for AQI/Alerts (requires coordinates)
-                    const coordResponse = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${cityToSearch}&limit=1&appid=${API_KEY}`);
+                    const coordResponse = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${cityToSearch}&limit=1&appid=${OPENWEATHER_API_KEY}`);
                     const coords = await coordResponse.json();
 
                     if (!coords || coords.length === 0) {
@@ -1005,7 +1010,7 @@
                 currentWeatherData.originalSearch = originalCity;
 
                 if (currentWeatherData.cod == 401 || forecastWeatherData.cod == 401) {
-                    showMessage("API Key Error: Your key is either inactive or invalid. Please check your OpenWeatherMap dashboard.", true);
+                    showMessage("API Key Error: Your OpenWeatherMap key is either inactive or invalid. Please check your OpenWeatherMap dashboard.", true);
                     return;
                 }
                 
@@ -1067,7 +1072,7 @@
                 currentWeatherData.originalSearch = currentWeatherData.name;
 
                 if (currentWeatherData.cod == 401 || forecastWeatherData.cod == 401) {
-                    showMessage("API Key Error: Your key is either inactive or invalid. Please check your OpenWeatherMap dashboard.", true);
+                    showMessage("API Key Error: Your OpenWeatherMap key is either inactive or invalid. Please check your OpenWeatherMap dashboard.", true);
                     return;
                 }
                 
@@ -1131,6 +1136,13 @@
         // --- AI GENERATION LOGIC ---
 
         async function generateWeatherInsight(data) {
+            if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE" || GEMINI_API_KEY.length < 30) {
+                 insightCard.classList.remove('hidden');
+                 insightLoading.classList.add('hidden');
+                 insightContent.textContent = "AI Insight unavailable: Please replace 'YOUR_GEMINI_API_KEY_HERE' in the code with a valid Gemini API key.";
+                 return;
+            }
+
             insightCard.classList.remove('hidden');
             insightContent.textContent = '';
             insightLoading.classList.remove('hidden');
@@ -1158,7 +1170,7 @@
 
             for (let i = 0; i < maxRetries; i++) {
                 try {
-                    const response = await fetch(GEMINI_API_URL + "", {
+                    const response = await fetch(GEMINI_API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -1170,6 +1182,12 @@
                             retryDelay *= 2; // Exponential backoff
                             continue;
                         }
+                        // This handles the 403 error specifically for the AI feature
+                        if (response.status === 403) {
+                             responseText = "AI Insight temporarily unavailable: API error 403 (Forbidden). Check if your Gemini API key is valid and enabled for the service.";
+                        } else {
+                             responseText = `AI Insight temporarily unavailable: API error: ${response.status}`;
+                        }
                         throw new Error(`API error: ${response.status}`);
                     }
 
@@ -1179,7 +1197,6 @@
 
                 } catch (error) {
                     console.error("Gemini API call failed:", error);
-                    responseText = `AI Insight temporarily unavailable: ${error.message}`;
                     if (i === maxRetries - 1) break; // Last retry failed
                     await new Promise(resolve => setTimeout(resolve, retryDelay));
                     retryDelay *= 2;
@@ -1561,8 +1578,8 @@
              // 3. Initial Load Sequence
              renderSearchDropdown(); 
              
-             if (API_KEY.length < 30) {
-                 showMessage("Welcome! Your API key is short or missing. Please ensure it is correctly entered in the code.", true);
+             if (OPENWEATHER_API_KEY.length < 30) {
+                 showMessage("Welcome! Your OpenWeatherMap API key is short or missing. Please ensure it is correctly entered in the code.", true);
                  showWelcome(); 
              } else if (lastCity) {
                  // Load last city immediately without geolocation
@@ -1590,6 +1607,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
