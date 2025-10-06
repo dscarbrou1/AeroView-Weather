@@ -48,6 +48,7 @@
         #app {
             max-width: none; /* Removed fixed width, now controlled by .desktop-layout */
             width: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.9); /* Added clean white border */
         }
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
@@ -76,6 +77,7 @@
             background-color: #e0f2fe; /* blue-50 */
             color: #1d4ed8; /* blue-700 */
             font-weight: 700;
+            border-bottom: 2px solid #3b82f6; /* Blue bottom border for active tab */
         }
         /* History Item Focus Override */
         #cityInput:focus + #historyContainer > #historyDisplay {
@@ -196,7 +198,7 @@
                     </button>
                     <button data-view="tenday" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-4 4h.01M5 12h.01M19 12h.01M6 16h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        10 Day
+                        7 Day
                     </button>
                     <!-- Future options could be added here (e.g., Radar, Map) -->
                 </div>
@@ -334,8 +336,8 @@
                             </div>
                             <div class="space-y-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                <p class="text-sm text-gray-700 font-semibold">Visibility</p>
-                                <p class="text-base font-bold text-gray-800" id="visibilityValue">--</p>
+                                <p class="text-sm text-gray-700 font-semibold">Moon Phase</p>
+                                <p class="text-base font-bold text-gray-800" id="moonphaseValue">--</p>
                             </div>
                         </div>
                     </div>
@@ -353,12 +355,12 @@
                     </div>
                 </div>
 
-                <!-- 10 DAY FORECAST VIEW -->
+                <!-- 7 DAY FORECAST VIEW -->
                 <div id="tenday-view" class="view hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">10 Day Forecast</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">7 Day Forecast</h2>
                     <!-- Content rendered in forecastDisplay -->
                      <div id="forecastSection" class="mt-6">
-                        <div id="forecastDisplay" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                        <div id="forecastDisplay" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
                             <!-- Daily forecast cards will be injected here -->
                         </div>
                     </div>
@@ -926,7 +928,7 @@
                     dayEl.querySelector('button').classList.add('date-selector-active');
                 }
             });
-            // Switch to the 10 Day View after selection
+            // Switch to the 7 Day View after selection
             setActiveView('tenday');
         }
 
@@ -958,7 +960,7 @@
             });
         }
 
-        // Renders the 5-Day forecast cards (used for the 10-Day View)
+        // Renders the 7-Day forecast cards 
         function displayForecast(data) {
             forecastDisplay.innerHTML = '';
             
@@ -984,8 +986,8 @@
                 dailyData[dateKey].icons[icon] = (dailyData[dateKey].icons[icon] || 0) + 1;
             });
 
-            // Filter for the next 5 days of distinct forecasts (which is all the OpenWeatherMap API provides)
-            const dailyKeys = Object.keys(dailyData).slice(0, 5); 
+            // CRITICAL FIX: Iterate through all available unique days (up to 7)
+            const dailyKeys = Object.keys(dailyData); 
 
             dailyKeys.forEach((dateKey, index) => {
                 const day = dailyData[dateKey];
@@ -1111,30 +1113,29 @@
             // Build the separate panel for Moon Phase, UV, etc. (NEW)
             const moonPhase = 'Waxing Gibbous'; // Placeholder - requires a separate API call for real data
             const uvIndex = '0 of 11'; // Placeholder for real data
-            const moonrise = formatTime(data.sys.sunrise - 3600, data.timezone); // Mock Moonrise
-            const moonset = formatTime(data.sys.sunset + 7200, data.timezone); // Mock Moonset
             const pressure = data.main.pressure;
+            const visibilityMetric = `${visibility} km`;
 
             document.getElementById('additionalDetailsPanel').innerHTML = `
                 <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Moon & Wellness</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 text-center">
                     
-                    <div class="space-y-1">
+                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                         <p class="text-sm text-gray-700 font-semibold">Moonrise</p>
-                        <p class="text-base font-bold text-gray-800" id="moonriseTime">${moonrise}</p>
+                        <p class="text-base font-bold text-gray-800" id="moonriseTime">${formatTime(data.sys.sunrise - 3600, data.timezone)}</p>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         <p class="text-sm text-gray-700 font-semibold">UV Index</p>
                         <p class="text-base font-bold text-gray-800" id="uvIndexValue">${uvIndex}</p>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         <p class="text-sm text-gray-700 font-semibold">Pressure</p>
                         <p class="text-base font-bold text-gray-800" id="pressureValue">${pressure} hPa</p>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         <p class="text-sm text-gray-700 font-semibold">Moon Phase</p>
                         <p class="text-base font-bold text-gray-800" id="moonphaseValue">${moonPhase}</p>
@@ -1449,10 +1450,12 @@
         });
         cityInput.addEventListener('focus', () => renderSearchDropdown(cityInput.value));
         cityInput.addEventListener('blur', () => {
-            // Delay hiding the dropdown to allow click events to register
-            setTimeout(() => {
-                historyDisplay.classList.add('hidden');
-            }, 200);
+            // CRITICAL FIX: Hide the dropdown only if the related target (where focus is moving) is NOT inside the history container
+            if (!historyDisplay.contains(document.activeElement) && document.activeElement !== cityInput) {
+                setTimeout(() => {
+                    historyDisplay.classList.add('hidden');
+                }, 100);
+            }
         });
         
         clearHistoryBtn.addEventListener('click', () => {
@@ -1543,9 +1546,6 @@
     </script>
 </body>
 </html>
-
-
-
 
 
 
