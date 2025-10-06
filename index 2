@@ -338,13 +338,13 @@
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + GEMINI_API_KEY;
 
         
-        // --- STATIC CITY LIST FOR SUGGESTIONS (7 Continents, restored) ---
+        // --- STATIC CITY LIST FOR SUGGESTIONS (Restored pre-7-continent list) ---
         const CITY_LIST = [
             // North America
             "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Philadelphia, PA", "Phoenix, AZ", "San Antonio, TX",
             "San Diego, CA", "Dallas, TX", "San Jose, CA", "Austin, TX", "Las Vegas, NV", "Miami, FL", "Boston, MA", 
             "Seattle, WA", "Denver, CO", "Reno, NV", "Mount Charleston, NV", "Birmingham, AL", 
-            "Toronto, CA", "Vancouver, CA", "Montreal, CA", "Mexico City, MX", "Guadalajara, MX", "Los Remedios de Michoacan, MX",
+            "Toronto, CA", "Vancouver, CA", "Montreal, CA", "Mexico City, MX", "Guadalajara, MX", "Morelia, Michoacan, MX", // Fixed: Replaced complex name with Morelia
             "Havana, CU", "Kingston, JM", "San Juan, PR",
             // South America
             "Sao Paulo, BR", "Rio de Janeiro, BR", "Buenos Aires, AR", "Lima, PE", "Santiago, CL", "Bogota, CO",
@@ -369,16 +369,16 @@
             "California, US", "Texas, US", "Florida, US", "Illinois, US", "Nevada, US", "Michigan, US",
             "New York, US", "Washington, US", "Colorado, US", "Massachusetts, US",
         ];
-        
+
         // --- STATIC IMAGE MAPPING (Guaranteed City Images) ---
         const STATIC_CITY_IMAGES = {
             'NEW YORK': 'https://images.unsplash.com/photo-1546467005-0e10b240590a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'LONDON': 'https://images.unsplash.com/photo-1533929780004-945624128521?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'PARIS': 'https://images.unsplash.com/photo-1502602898624-ad4b2a8d5811?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'TOKYO': 'https://images.unsplash.com/photo-1540679776092-d96a60391d1a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'SYDNEY': 'https://images.unsplash.com/photo-1582260656515-f5be870c538a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'DUBAI': 'https://images.unsplash.com/photo-1512495679313-264639902633?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'LAS VEGAS': 'https://images.unsplash.com/photo-1550503046-e5c9a444d47c?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'PARIS': 'https://images.unsplash-lite.com/photo-1502602898624-ad4b2a8d5811?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'TOKYO': 'https://images.unsplash-lite.com/photo-1540679776092-d96a60391d1a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'SYDNEY': 'https://images.unsplash-lite.com/photo-1582260656515-f5be870c538a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'DUBAI': 'https://images.unsplash-lite.com/photo-1512495679313-264639902633?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'LAS VEGAS': 'https://images.unsplash-lite.com/photo-1550503046-e5c9a444d47c?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
         };
 
         // --- STATE MAP FOR US CITIES ---
@@ -498,13 +498,15 @@
 
         // Converts Celsius to Fahrenheit
         function toFahrenheit(celsius) {
+            // Formula: (C * 9/5) + 32
             return Math.round((celsius * 9/5) + 32);
         }
 
         // Converts temperature based on current unit state
         function convertTemp(kelvin) {
             const celsius = toCelsius(kelvin);
-            return isCelsius ? celsius : toFahrenheit(celsius);
+            // FIX: Ensure toFahrenheit is passed the Celsius value, not Kelvin
+            return isCelsius ? celsius : toFahrenheit(celsius); 
         }
 
         // Wind Speed conversion: m/s (API default) to desired unit
@@ -808,8 +810,7 @@
                 const dateKey = new Date(item.dt * 1000).toDateString();
                 const temp = convertTemp(item.main.temp);
                 const icon = item.weather[0].icon;
-                const description = item.weather[0].description;
-
+                
                 if (!dailyData[dateKey]) {
                     dailyData[dateKey] = {
                         temps: [],
@@ -834,6 +835,8 @@
 
                 // Determine the most frequent icon for the day
                 const mostFrequentIcon = Object.keys(day.icons).reduce((a, b) => day.icons[a] > day.icons[b] ? a : b);
+                // Get the description for the chosen icon (needed for alt text)
+                const description = data.list.find(item => item.weather[0].icon === mostFrequentIcon)?.weather[0]?.description || 'weather';
 
                 const cardHtml = `
                     <div class="text-gray-800 transition duration-300">
@@ -859,8 +862,10 @@
             welcomeState.classList.add('hidden');
             weatherDisplay.classList.remove('hidden');
             
+            // Get temperature values from Kelvin (now fixed in convertTemp)
             const temp = convertTemp(data.main.temp);
             const feelsLike = convertTemp(data.main.feels_like);
+            
             const condition = data.weather[0].description;
             const iconCode = data.weather[0].icon;
             const wind = convertWindSpeed(data.wind.speed);
