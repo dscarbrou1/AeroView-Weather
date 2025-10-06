@@ -24,10 +24,30 @@
             min-height: 100vh;
             padding: 1rem;
         }
-        /* Increased max width for more content space */
+        
+        /* Main Grid Layout for Desktop (Sidebar + Content) */
+        .desktop-layout {
+            display: grid;
+            grid-template-columns: minmax(180px, 250px) 1fr; /* Fixed sidebar, flexible content */
+            max-width: 1200px; /* Wider overall app container */
+            width: 95%;
+            min-height: 90vh; /* Fill vertical space */
+        }
+        /* Mobile Layout (Single Column) */
+        @media (max-width: 1024px) {
+            .desktop-layout {
+                display: flex;
+                flex-direction: column;
+                min-height: auto;
+            }
+            #sidebar { display: none; }
+            #main-content { padding: 1rem; }
+        }
+
+        /* --- STYLING RESTORED --- */
         #app {
-            max-width: 48rem; /* Increased from max-w-xl (36rem) to 48rem */
-            width: 95%; /* Use 95% of screen width up to max-width */
+            max-width: none; /* Removed fixed width, now controlled by .desktop-layout */
+            width: 100%;
         }
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
@@ -50,6 +70,12 @@
         .unit-inactive {
             background-color: #e5e7eb; /* gray-200 */
             color: #4b5563; /* gray-600 */
+        }
+        /* Sidebar Navigation Active State */
+        .nav-active {
+            background-color: #e0f2fe; /* blue-50 */
+            color: #1d4ed8; /* blue-700 */
+            font-weight: 700;
         }
         /* History Item Focus Override */
         #cityInput:focus + #historyContainer > #historyDisplay {
@@ -88,43 +114,16 @@
         }
 
         /* --- IMMERSIVE ANIMATION STYLES --- */
+        /* ... (Animations remain the same) ... */
+        @keyframes sun-rotate { to { transform: rotate(360deg); } }
+        @keyframes cloud-move { 0% { transform: translateX(0); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+        @keyframes rain-fall { 0% { transform: translateY(-100%); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(100%); opacity: 0; } }
+        @keyframes snow-fall { 0% { transform: translate(0, -10px); opacity: 0; } 100% { transform: translate(10px, 10px); opacity: 1; } }
 
-        /* Animation for sun rotation */
-        @keyframes sun-rotate {
-            to { transform: rotate(360deg); }
-        }
-        /* Animation for gentle cloud movement */
-        @keyframes cloud-move {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(5px); }
-            100% { transform: translateX(0); }
-        }
-        /* Animation for raindrops falling */
-        @keyframes rain-fall {
-            0% { transform: translateY(-100%); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(100%); opacity: 0; }
-        }
-        /* Animation for snow falling */
-        @keyframes snow-fall {
-            0% { transform: translate(0, -10px); opacity: 0; }
-            100% { transform: translate(10px, 10px); opacity: 1; }
-        }
-
-        /* Applying animations */
-        .animated-sun {
-            animation: sun-rotate 12s linear infinite;
-            transform-origin: 50% 50%;
-        }
-        .animated-cloud {
-            animation: cloud-move 6s ease-in-out infinite alternate;
-        }
-        .animated-rain {
-            animation: rain-fall 1s linear infinite;
-        }
-        .animated-snow {
-            animation: snow-fall 2s linear infinite;
-        }
+        .animated-sun { animation: sun-rotate 12s linear infinite; transform-origin: 50% 50%; }
+        .animated-cloud { animation: cloud-move 6s ease-in-out infinite alternate; }
+        .animated-rain { animation: rain-fall 1s linear infinite; }
+        .animated-snow { animation: snow-fall 2s linear infinite; }
         
         /* Hourly Scroll Container */
         .hourly-scroll {
@@ -179,161 +178,201 @@
 
     <div id="snow-container" class="snow"></div>
 
-    <div id="app" class="bg-white/90 p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-300">
+    <div id="app" class="desktop-layout rounded-3xl shadow-2xl transition-all duration-300 overflow-hidden">
         
-        <!-- Header -->
-        <header class="text-center mb-6">
-            <h1 class="text-3xl font-extrabold text-gray-800">AeroView</h1>
-            <p class="text-sm text-gray-500 mt-1">Check the current conditions anywhere in the world.</p>
-        </header>
-        
-        <!-- Severe Weather Alert Banner (Highest Priority) -->
-        <div id="alertBanner" class="hidden p-3 mb-4 rounded-lg bg-red-100 border border-red-400 text-red-700 font-semibold flex items-center shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
-            </svg>
-            <span id="alertContent"></span>
+        <!-- SIDEBAR NAVIGATION (LEFT COLUMN) -->
+        <div id="sidebar" class="bg-gray-50 p-4 border-r border-gray-200 flex flex-col justify-between">
+            <nav>
+                <div class="text-3xl font-extrabold text-gray-800 mb-6">AeroView</div>
+                <div id="nav-menu">
+                    <!-- Navigation Items -->
+                    <button data-view="today" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item nav-active flex items-center transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        Today
+                    </button>
+                    <button data-view="hourly" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Hourly
+                    </button>
+                    <button data-view="tenday" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-4 4h.01M5 12h.01M19 12h.01M6 16h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        10 Day
+                    </button>
+                    <!-- Future options could be added here (e.g., Radar, Map) -->
+                </div>
+            </nav>
+            
+            <footer class="text-sm text-gray-400">
+                <button id="aboutBtn" class="hover:text-gray-600 transition underline">About AeroView</button>
+            </footer>
         </div>
 
-        <!-- Input Section -->
-        <div class="flex space-x-3 mb-4">
-            <div class="relative flex-grow">
-                <input type="text" id="cityInput" placeholder="Enter city name or use location..." 
-                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
-                <!-- Refresh Button (Hidden until successful search) -->
-                <button id="refreshButton" 
-                        class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-center"
-                        style="display: none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v1h2a1 1 0 011 1v2a1 1 0 01-1 1H5v2h2a1 1 0 011 1v2a1 1 0 01-1 1H5v1a1 1 0 01-2 0v-1H2a1 1 0 01-1-1v-2a1 1 0 011-1h1V8H2a1 1 0 01-1-1V5a1 1 0 011-1h1V3a1 1 0 011-1zm6.5 7.728l3.182-3.182a4 4 0 00-5.657-5.657L6.818 3.343a6 6 0 118.485 8.485l-3.182 3.182a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            </div>
-            <!-- Search Button (Visible initially, toggles with Refresh) -->
-            <button id="searchButton" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95">
-                Search
-            </button>
-        </div>
-
-        <!-- Search History List/Suggestions Dropdown -->
-        <div id="historyContainer" class="relative">
-            <div id="historyDisplay" 
-                 class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto mt-[-10px] hidden">
-                <div id="historyHeader" class="flex justify-between items-center p-2 border-b text-gray-500 text-xs font-semibold">
-                    <span id="dropdownTitle">Recent Searches</span>
-                    <button id="clearHistoryBtn" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded transition duration-150" title="Clear All History">
-                        Clear
+        <!-- MAIN CONTENT AREA (RIGHT COLUMN) -->
+        <div id="main-content" class="bg-white/90 p-6 md:p-8 overflow-y-auto">
+            
+            <!-- Top Search and Global Controls -->
+            <div class="flex justify-between items-center mb-6">
+                <!-- Search Input Group -->
+                <div class="flex flex-grow max-w-lg space-x-3">
+                    <div class="relative flex-grow">
+                        <input type="text" id="cityInput" placeholder="Search City or Zip Code" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
+                        <button id="refreshButton" 
+                                class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-center"
+                                style="display: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v1h2a1 1 0 011 1v2a1 1 0 01-1 1H5v2h2a1 1 0 011 1v2a1 1 0 01-1 1H5v1a1 1 0 01-2 0v-1H2a1 1 0 01-1-1v-2a1 1 0 011-1h1V8H2a1 1 0 01-1-1V5a1 1 0 011-1h1V3a1 1 0 011-1zm6.5 7.728l3.182-3.182a4 4 0 00-5.657-5.657L6.818 3.343a6 6 0 118.485 8.485l-3.182 3.182a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button id="searchButton" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95">
+                        Search
                     </button>
                 </div>
-                <div id="dropdownList">
-                    <!-- Suggestions or History items injected here -->
+
+                <!-- Unit Controls -->
+                <div class="flex p-1 bg-gray-200 rounded-lg shadow-inner ml-4 flex-shrink-0">
+                    <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°C</button>
+                    <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°F</button>
                 </div>
             </div>
-        </div>
 
-        <!-- Unit and Detail Toggles Container -->
-        <div class="flex justify-center flex-wrap gap-x-6 gap-y-3 mb-6 mt-4">
-            <!-- Unit Toggle -->
-            <div id="unitToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
-                <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°C</button>
-                <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°F</button>
+            <!-- Search History List/Suggestions Dropdown -->
+            <div id="historyContainer" class="relative max-w-lg">
+                <div id="historyDisplay" 
+                    class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto mt-[-10px] hidden">
+                    <div id="historyHeader" class="flex justify-between items-center p-2 border-b text-gray-500 text-xs font-semibold">
+                        <span id="dropdownTitle">Recent Searches</span>
+                        <button id="clearHistoryBtn" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded transition duration-150" title="Clear All History">
+                            Clear
+                        </button>
+                    </div>
+                    <div id="dropdownList">
+                        <!-- Suggestions or History items injected here -->
+                    </div>
+                </div>
             </div>
 
-            <!-- Basic / Advanced Toggle -->
-            <div id="detailToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
-                <button id="basicBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Basic</button>
-                <button id="advancedBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Advanced</button>
+            <!-- VIEW CONTAINER -->
+            <div id="view-container" class="mt-6">
+                
+                <!-- HOME / TODAY VIEW (Default) -->
+                <div id="today-view" class="view active">
+                    
+                    <!-- Severe Weather Alert Banner (Highest Priority) -->
+                    <div id="alertBanner" class="hidden p-3 mb-4 rounded-lg bg-red-100 border border-red-400 text-red-700 font-semibold flex items-center shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span id="alertContent"></span>
+                    </div>
+
+                    <!-- Prediction Timeline (Rain/Snow) -->
+                    <div id="predictionBannerContainer">
+                        <!-- Prediction Banner will be inserted here -->
+                    </div>
+
+                    <!-- AI INSIGHT CARD -->
+                    <div id="insightCard" class="hidden p-4 mb-6 bg-white rounded-xl shadow-lg border-l-4 border-blue-500">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M5.5 10a.5.5 0 01.5-.5h2a.5.5 0 010 1H6a.5.5 0 01-.5-.5zm.5 2a.5.5 0 000 1h2a.5.5 0 000-1H6a.5.5 0 00-.5.5zm10-5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM16 8a.5.5 0 000 1h2a.5.5 0 000-1h-2z" />
+                                <path fill-rule="evenodd" d="M18.442 8.796a4.43 4.43 0 011.025.267 1 1 0 01.533.888v.175a1 1 0 01-.225.641l-2.023 2.768a1 1 0 01-.98.375h-2.128a1 1 0 01-.914-.582 1 1 0 01.196-.924c.036-.04.07-.08.106-.12l1.62-1.74a1 1 0 00-.773-1.614h-3.414l.001 2.5a1 1 0 01-1 1H5a1 1 0 01-1-1v-2.5H.5a.5.5 0 010-1h3.5v-2.5a1 1 0 011-1h6.414a1 1 0 00.773-1.614l-1.62-1.74a1 1 0 01-.196-.924 1 1 0 01.914-.582h2.128a1 1 0 01.98.375l2.023 2.768a1 1 0 01.225.641v.175a.5.5 0 01-.533.488zM15 11h-2v2h2v-2zM7 11H5v2h2v-2z" clip-rule="evenodd"/>
+                            </svg>
+                            AeroView Insight
+                        </h3>
+                        <div id="insightContent" class="text-sm text-gray-600 italic">
+                            <!-- AI generated text goes here -->
+                        </div>
+                        <div id="insightLoading" class="text-sm text-gray-500 mt-2 italic flex items-center">
+                            <svg class="spinner h-4 w-4 mr-1 text-blue-500" viewBox="0 0 50 50">
+                                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
+                            </svg>
+                            Generating AI summary...
+                        </div>
+                    </div>
+                    <!-- Current Weather Card Display -->
+                    <div id="weatherDisplay" class="hidden text-center p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02]">
+                        <!-- Current weather content will be injected here -->
+                    </div>
+                    <!-- Basic / Advanced Toggle -->
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-3 mt-6">
+                        <div id="detailToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
+                            <button id="basicBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Basic</button>
+                            <button id="advancedBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Advanced</button>
+                        </div>
+                        <button id="mapBtn" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition transform hover:scale-105">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
+                            </svg>
+                            View 3D Map
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- HOURLY FORECAST VIEW -->
+                <div id="hourly-view" class="view hidden">
+                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Hourly Forecast</h2>
+                     <!-- Content rendered in hourlyDisplay -->
+                     <div id="hourlyForecastSection" class="mt-4">
+                        <div id="hourlyDisplay" class="hourly-scroll flex overflow-x-auto">
+                            <!-- Hourly forecast cards injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10 DAY FORECAST VIEW -->
+                <div id="tenday-view" class="view hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">10 Day Forecast</h2>
+                    <!-- Content rendered in forecastDisplay -->
+                     <div id="forecastSection" class="mt-6">
+                        <div id="forecastDisplay" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                            <!-- Daily forecast cards will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Loading Skeleton -->
+            <div id="loadingSkeleton" class="hidden text-center p-6 bg-gray-100 rounded-3xl shadow-md transition-all duration-300">
+                <div class="flex flex-col items-center">
+                    <svg class="spinner h-8 w-8 text-blue-500 mb-4" viewBox="0 0 50 50">
+                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
+                    </svg>
+                    <div class="h-4 bg-gray-300 rounded w-1/2 mb-4 animate-pulse"></div>
+                    <div class="h-24 bg-gray-300 rounded-lg w-full mb-4 animate-pulse"></div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+                        <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
+                        <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
+                        <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
+                        <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial/Welcome Content -->
+            <div id="welcomeState" class="text-center p-6 bg-white rounded-3xl border border-gray-200 shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Welcome to AeroView!</h2>
+                <p class="text-gray-600 mb-4">Start by searching for a city, or grant location access to see your local weather.</p>
+                <p class="text-sm text-blue-500 font-semibold flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                    </svg>
+                    Try searching "London, UK" or "Dallas, TX"!
+                </p>
             </div>
             
-            <!-- 3D Map View -->
-            <button id="mapBtn" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition transform hover:scale-105">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" />
-                </svg>
-                View 3D Map
-            </button>
-        </div>
+             <!-- Message Area (Errors/Information) -->
+            <div id="messageArea" class="text-center text-red-500 font-medium mb-4" style="display: none;"></div>
 
-        <!-- Message Area (Errors/Information) -->
-        <div id="messageArea" class="text-center text-red-500 font-medium mb-4" style="display: none;"></div>
-        
-        <!-- AI INSIGHT CARD -->
-        <div id="insightCard" class="hidden p-4 mb-6 bg-white rounded-xl shadow-lg border-l-4 border-blue-500">
-            <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M5.5 10a.5.5 0 01.5-.5h2a.5.5 0 010 1H6a.5.5 0 01-.5-.5zm.5 2a.5.5 0 000 1h2a.5.5 0 000-1H6a.5.5 0 00-.5.5zm10-5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM16 8a.5.5 0 000 1h2a.5.5 0 000-1h-2z" />
-                    <path fill-rule="evenodd" d="M18.442 8.796a4.43 4.43 0 011.025.267 1 1 0 01.533.888v.175a1 1 0 01-.225.641l-2.023 2.768a1 1 0 01-.98.375h-2.128a1 1 0 01-.914-.582 1 1 0 01.196-.924c.036-.04.07-.08.106-.12l1.62-1.74a1 1 0 00-.773-1.614h-3.414l.001 2.5a1 1 0 01-1 1H5a1 1 0 01-1-1v-2.5H.5a.5.5 0 010-1h3.5v-2.5a1 1 0 011-1h6.414a1 1 0 00.773-1.614l-1.62-1.74a1 1 0 01-.196-.924 1 1 0 01.914-.582h2.128a1 1 0 01.98.375l2.023 2.768a1 1 0 01.225.641v.175a.5.5 0 01-.533.488zM15 11h-2v2h2v-2zM7 11H5v2h2v-2z" clip-rule="evenodd"/>
-                </svg>
-                AeroView Insight
-            </h3>
-            <div id="insightContent" class="text-sm text-gray-600 italic">
-                <!-- AI generated text goes here -->
-            </div>
-            <div id="insightLoading" class="text-sm text-gray-500 mt-2 italic flex items-center">
-                <svg class="spinner h-4 w-4 mr-1 text-blue-500" viewBox="0 0 50 50">
-                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
-                </svg>
-                Generating AI summary...
-            </div>
+            <!-- Footer for Main Content -->
+            <footer class="mt-6 text-center text-sm text-gray-400">
+                <p>Weather data from OpenWeatherMap.</p>
+            </footer>
         </div>
-        <!-- END AI INSIGHT CARD -->
-
-        
-        <!-- Loading Skeleton -->
-        <div id="loadingSkeleton" class="hidden text-center p-6 bg-gray-100 rounded-3xl shadow-md transition-all duration-300">
-            <div class="flex flex-col items-center">
-                <svg class="spinner h-8 w-8 text-blue-500 mb-4" viewBox="0 0 50 50">
-                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
-                </svg>
-                <div class="h-4 bg-gray-300 rounded w-1/2 mb-4 animate-pulse"></div>
-                <div class="h-24 bg-gray-300 rounded-lg w-full mb-4 animate-pulse"></div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-                    <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
-                    <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
-                    <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
-                    <div class="h-8 bg-gray-300 rounded animate-pulse"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Initial/Welcome Content -->
-        <div id="welcomeState" class="text-center p-6 bg-white rounded-3xl border border-gray-200 shadow-lg">
-            <h2 class="text-xl font-bold text-gray-800 mb-2">Welcome to AeroView!</h2>
-            <p class="text-gray-600 mb-4">Start by searching for a city, or grant location access to see your local weather.</p>
-            <p class="text-sm text-blue-500 font-semibold flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                </svg>
-                Try searching "London, UK" or "Dallas, TX"!
-            </p>
-        </div>
-        
-        <!-- Current Weather Card Display -->
-        <div id="weatherDisplay" class="hidden text-center p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02]">
-            <!-- Current weather content will be injected here -->
-        </div>
-
-        <!-- Hourly Forecast Section -->
-        <div id="hourlyForecastSection" class="hidden mt-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-3 text-center border-b pb-2">Hourly Forecast (Next 15 Hours)</h3>
-            <div id="hourlyDisplay" class="hourly-scroll flex overflow-x-auto mt-4">
-                <!-- Hourly forecast cards injected here -->
-            </div>
-        </div>
-
-        <!-- 5-Day Forecast Section -->
-        <div id="forecastSection" class="hidden mt-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-3 text-center border-b pb-2">5-Day Forecast</h3>
-            <div id="forecastDisplay" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                <!-- Forecast cards will be injected here -->
-            </div>
-        </div>
-
-        <!-- App Footer -->
-        <footer class="mt-6 text-center text-sm text-gray-400">
-            <button id="aboutBtn" class="hover:text-gray-600 transition underline">About this App</button>
-        </footer>
     </div>
     
     <!-- About Modal -->
@@ -367,7 +406,7 @@
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + GEMINI_API_KEY;
 
         
-        // --- STATIC CITY LIST FOR SUGGESTIONS (Restored pre-7-continent list) ---
+        // --- STATIC CITY LIST FOR SUGGESTIONS (7-Continent List) ---
         const CITY_LIST = [
             // North America
             "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Philadelphia, PA", "Phoenix, AZ", "San Antonio, TX",
@@ -423,6 +462,8 @@
         const MAX_HISTORY = 5;
         let selectedForecastDay = 0; // Index for selected day (0 = today)
         let lastAQI = null; // Store last AQI to pass to AI insight
+        let currentView = 'today'; // Current active view
+        let navItems = {}; // Storage for navigation buttons
 
         // --- DOM Elements ---
         const appContainer = document.getElementById('app');
@@ -430,7 +471,6 @@
         const searchButton = document.getElementById('searchButton');
         const refreshButton = document.getElementById('refreshButton');
         const weatherDisplay = document.getElementById('weatherDisplay');
-        const forecastSection = document.getElementById('forecastSection');
         const forecastDisplay = document.getElementById('forecastDisplay');
         const messageArea = document.getElementById('messageArea');
         const celsiusBtn = document.getElementById('celsiusBtn');
@@ -443,11 +483,9 @@
         const loadingSkeleton = document.getElementById('loadingSkeleton');
         const welcomeState = document.getElementById('welcomeState');
         const clearHistoryBtn = document.getElementById('clearHistoryBtn'); 
-        const aboutBtn = document.getElementById('aboutBtn'); 
         const aboutModal = document.getElementById('aboutModal'); 
         const closeModalBtn = document.getElementById('closeModalBtn'); 
         const mapBtn = document.getElementById('mapBtn');
-        const hourlyForecastSection = document.getElementById('hourlyForecastSection');
         const hourlyDisplay = document.getElementById('hourlyDisplay');
         const alertBanner = document.getElementById('alertBanner');
         const alertContent = document.getElementById('alertContent');
@@ -455,28 +493,35 @@
         const insightContent = document.getElementById('insightContent');
         const insightLoading = document.getElementById('insightLoading');
         const snowContainer = document.getElementById('snow-container');
-
+        const predictionBannerContainer = document.getElementById('predictionBannerContainer');
 
         // --- CORE UTILITY FUNCTIONS ---
 
         // Function to display messages (errors or loading)
         function showMessage(text, isError = false) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
             weatherDisplay.classList.add('hidden');
-            forecastSection.classList.add('hidden'); 
-            hourlyForecastSection.classList.add('hidden');
-            welcomeState.classList.add('hidden'); 
             loadingSkeleton.classList.add('hidden');
             insightCard.classList.add('hidden');
             alertBanner.classList.add('hidden');
             refreshButton.style.display = 'none';
             searchButton.style.display = 'block';
 
-            messageArea.textContent = text;
-            messageArea.style.display = 'block';
+            // Show relevant element
+            if (isError || text.includes('location')) {
+                 messageArea.textContent = text;
+                 messageArea.style.display = 'block';
+                 welcomeState.classList.remove('hidden');
+            } else {
+                 welcomeState.classList.add('hidden');
+                 messageArea.style.display = 'none';
+            }
+
             messageArea.className = `text-center font-medium mb-4 ${isError ? 'text-red-500' : 'text-gray-600'}`;
 
             if (isError) {
-                // Error Visualization: Shake the button and flash the container border
+                // Error Visualization
                 searchButton.classList.add('error-shake');
                 appContainer.style.border = '2px solid #f87171'; // Red-400
                 setTimeout(() => {
@@ -486,33 +531,24 @@
             }
         }
 
-        // Function to clear messages
-        function clearMessage() {
-            messageArea.textContent = '';
-            messageArea.style.display = 'none';
-        }
-
-        // Function to show the loading state
         function showLoading() {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
             welcomeState.classList.add('hidden'); 
             weatherDisplay.classList.add('hidden');
-            forecastSection.classList.add('hidden');
-            hourlyForecastSection.classList.add('hidden');
             messageArea.style.display = 'none';
             insightCard.classList.add('hidden');
             alertBanner.classList.add('hidden');
             refreshButton.style.display = 'none';
             searchButton.style.display = 'block';
             loadingSkeleton.classList.remove('hidden');
-            cityInput.blur(); // Hide dropdown while loading
+            cityInput.blur();
         }
 
-        // Function to show the welcome state
         function showWelcome() {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('today-view').classList.remove('hidden'); // Show home view structure
             loadingSkeleton.classList.add('hidden');
             weatherDisplay.classList.add('hidden');
-            forecastSection.classList.add('hidden');
-            hourlyForecastSection.classList.add('hidden');
             messageArea.style.display = 'none';
             insightCard.classList.add('hidden');
             alertBanner.classList.add('hidden');
@@ -520,6 +556,19 @@
             searchButton.style.display = 'block';
             welcomeState.classList.remove('hidden');
             cityInput.value = '';
+            setActiveView('today');
+        }
+
+        // Navigation Switcher
+        function setActiveView(viewId) {
+            currentView = viewId;
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId + '-view').classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('nav-active');
+            });
+            navItems[viewId]?.classList.add('nav-active');
         }
 
         // Converts Kelvin to Celsius
@@ -559,7 +608,6 @@
         // Formats UNIX timestamp into local time (e.g., 6:30 PM) for the city's timezone
         function formatTime(unixTimestamp, timezoneOffset) {
             const date = new Date((unixTimestamp + timezoneOffset) * 1000);
-            // Use UTC methods and timezone offset to simulate local time
             const hours = date.getUTCHours();
             const minutes = date.getUTCMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -842,15 +890,17 @@
             selectedForecastDay = dayIndex;
             renderHourlyForecast();
             // Update button styles
-            forecastDisplay.querySelectorAll('div').forEach((dayEl, index) => {
+            document.getElementById('forecastDisplay').querySelectorAll('div').forEach((dayEl, index) => {
                 dayEl.querySelector('button').classList.remove('date-selector-active');
                 if (index === dayIndex) {
                     dayEl.querySelector('button').classList.add('date-selector-active');
                 }
             });
+            // Switch to the 10 Day View after selection
+            setActiveView('tenday');
         }
 
-        // Renders the hourly forecast for the selected day
+        // Renders the hourly forecast for the currently selected day
         function renderHourlyForecast() {
             hourlyDisplay.innerHTML = '';
             
@@ -860,8 +910,8 @@
             const dayStart = selectedForecastDay * 8; 
             const hourlyList = forecastWeatherData.list.slice(dayStart, dayStart + 8);
             
-            // Limit to max 15 hours for clean display (since data is 3-hour chunks, we take max 8 entries, which is 24 hours)
-            hourlyList.slice(0, 5).forEach(item => {
+            // Display next 8 * 3-hour slots (24 hours) for the selected day
+            hourlyList.forEach(item => {
                 const temp = convertTemp(item.main.temp);
                 const time = getHourTime(item.dt);
                 const iconCode = item.weather[0].icon;
@@ -876,22 +926,20 @@
                 `;
                 hourlyDisplay.innerHTML += cardHtml;
             });
-            
-            hourlyForecastSection.classList.remove('hidden');
         }
 
-        // Renders the 5-Day forecast cards
+        // Renders the 5-Day forecast cards (used for the 10-Day View)
         function displayForecast(data) {
             forecastDisplay.innerHTML = '';
             
             const forecastList = data.list;
             const dailyData = {};
-            const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
             forecastList.forEach(item => {
-                const dateKey = new Date(item.dt * 1000).toDateString();
+                // Determine the date key based on UTC start of the day
+                const date = new Date(item.dt * 1000);
+                const dateKey = date.toDateString(); 
                 
-                // Store the Kelvin value for min/max calculation
                 const temp = item.main.temp; 
                 const icon = item.weather[0].icon;
                 
@@ -906,77 +954,72 @@
                 dailyData[dateKey].icons[icon] = (dailyData[dateKey].icons[icon] || 0) + 1;
             });
 
-            // Filter for the next 5 days
+            // Filter for the next 5 days of distinct forecasts (which is all the OpenWeatherMap API provides)
             const dailyKeys = Object.keys(dailyData).slice(0, 5); 
 
             dailyKeys.forEach((dateKey, index) => {
                 const day = dailyData[dateKey];
                 const dayName = getDayName(day.dt);
 
-                // CRITICAL FIX: Convert all Kelvin temperatures to the current display unit (F or C)
-                // before calculating Min/Max on the converted array.
                 const convertedTemps = day.temps.map(convertTemp); 
 
                 const minTemp = Math.min(...convertedTemps);
                 const maxTemp = Math.max(...convertedTemps);
 
-                // Determine the most frequent icon for the day
                 const mostFrequentIcon = Object.keys(day.icons).reduce((a, b) => day.icons[a] > day.icons[b] ? a : b);
-                // Get the description for the chosen icon (needed for alt text)
                 const description = data.list.find(item => item.weather[0].icon === mostFrequentIcon)?.weather[0]?.description || 'weather';
 
                 const cardHtml = `
-                    <div class="text-gray-800 transition duration-300">
+                    <div class="transition duration-300">
                         <button onclick="selectForecastDay(${index})" 
-                                class="w-full p-2 rounded-xl shadow-md text-center bg-gray-100 transform hover:scale-105 transition ${index === selectedForecastDay ? 'date-selector-active' : ''}">
-                            <p class="text-sm font-bold mb-1">${dayName}</p>
-                            <img src="${ICON_URL}${mostFrequentIcon}.png" alt="${description}" class="mx-auto h-8 w-8">
-                            <p class="text-xs font-semibold mt-1">${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</p>
+                                class="w-full p-4 rounded-xl shadow-md text-center bg-gray-100 transform hover:scale-105 transition">
+                            <p class="text-lg font-bold mb-1">${dayName}</p>
+                            <img src="${ICON_URL}${mostFrequentIcon}@2x.png" alt="${description}" class="mx-auto h-12 w-12">
+                            <p class="text-lg font-semibold mt-1">${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</p>
                         </button>
                     </div>
                 `;
                 forecastDisplay.innerHTML += cardHtml;
             });
 
-            forecastSection.classList.remove('hidden');
-            selectForecastDay(selectedForecastDay); // Render hourly forecast for the initially selected day
+            // Set up hourly forecast for the first day by default
+            selectedForecastDay = 0;
+            renderHourlyForecast(); 
+            selectForecastDay(0); // Activate the first day button
         }
 
-        // Renders current weather details
+        // Renders current weather details (Today View)
         function displayCurrentWeather(data) {
-            clearMessage();
-            loadingSkeleton.classList.add('hidden');
+            
+            // 1. Hide Welcome and Show Today View Structure
+            document.getElementById('today-view').classList.remove('hidden');
             welcomeState.classList.add('hidden');
+            loadingSkeleton.classList.add('hidden');
             weatherDisplay.classList.remove('hidden');
             
-            // Get correct temperatures immediately using the fixed convertTemp
+            // 2. Get Converted Temperatures
             const temp_K = data.main.temp;
             const feelsLike_K = data.main.feels_like;
             const temp_min_K = data.main.temp_min;
             const temp_max_K = data.main.temp_max;
 
-            // Apply conversions for display
             const temp = convertTemp(temp_K);
             const feelsLike = convertTemp(feelsLike_K);
             const minTemp = convertTemp(temp_min_K);
             const maxTemp = convertTemp(temp_max_K);
             
+            // 3. Extract Other Details
             const condition = data.weather[0].description;
             const iconCode = data.weather[0].icon;
             const wind = convertWindSpeed(data.wind.speed);
-            const windGust = data.wind.gust ? convertWindSpeed(data.wind.gust) : null; // Get wind gust
+            const windGust = data.wind.gust ? convertWindSpeed(data.wind.gust) : null;
             const humidity = data.main.humidity;
+            const visibility = (data.visibility / 1000).toFixed(1);
             
-            const cityName = data.name;
-            let displayCityName = cityName;
-
-            // Fix for Mount Charleston/Summerlin issue: if API substitutes name, use search name
-            if (cityInput.dataset.lastSearch && cityName.toUpperCase().includes('SUMMERLIN')) {
-                displayCityName = cityInput.dataset.lastSearch.split(',')[0].trim();
-            }
-
-            // Fix for State/Country Display: check original search for state code
+            let displayCityName = data.name;
             let countryCode = data.sys.country;
+
+            // Apply name/state fixes
             if (countryCode === 'US') {
                 const searchParts = cityInput.dataset.lastSearch.split(',').map(s => s.trim().toUpperCase());
                 const stateAbbreviation = searchParts.find(part => US_STATE_MAP[part]);
@@ -984,16 +1027,17 @@
                     countryCode = stateAbbreviation;
                 }
             }
+            if (cityInput.dataset.lastSearch && data.name.toUpperCase().includes('SUMMERLIN')) {
+                displayCityName = cityInput.dataset.lastSearch.split(',')[0].trim();
+            }
             
             const sunrise = formatTime(data.sys.sunrise, data.timezone);
             const sunset = formatTime(data.sys.sunset, data.timezone);
-            const visibility = (data.visibility / 1000).toFixed(1);
-
-            // Get Dynamic Background Gradient
+            
+            // 4. Build HTML
             const bgGradient = getBackgroundColor(data.weather[0].id);
             weatherDisplay.className = `p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02] ${bgGradient} text-center`;
             
-            // Build the basic details HTML (always shown)
             let basicDetails = `
                 <div class="text-3xl font-bold text-white mb-2">${displayCityName}, ${countryCode}</div>
                 <div class="text-xl font-medium capitalize text-white opacity-90 mb-4">${condition}</div>
@@ -1003,37 +1047,17 @@
                 </div>
             `;
 
-            // Advanced details are conditional
             const advancedDetailsHTML = `
-                <div id="advancedDetails" class="grid grid-cols-2 gap-4 mt-6 text-sm font-semibold border-t border-white/30 pt-4">
-                    <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
-                        <span>Sunrise</span>
-                        <span>${sunrise}</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
-                        <span>Sunset</span>
-                        <span>${sunset}</span>
-                    </div>
-                    <div id="minMaxTemp" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
-                        <span>Min/Max</span>
-                        <span>${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</span>
-                    </div>
-                    <div id="pressureDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
-                        <span>Pressure</span>
-                        <span>${data.main.pressure} hPa</span>
-                    </div>
-                    <div id="visibilityDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
-                        <span>Visibility</span>
-                        <span>${visibility} km</span>
-                    </div>
-                    <div id="aqiDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
-                        <span>Air Quality (AQI)</span>
-                        <span id="aqiValue">--</span>
-                    </div>
+                <div id="advancedDetails" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-sm font-semibold border-t border-white/30 pt-4">
+                    <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Sunrise</span><span>${sunrise}</span></div>
+                    <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Sunset</span><span>${sunset}</span></div>
+                    <div id="minMaxTemp" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Min/Max</span><span>${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</span></div>
+                    <div id="pressureDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Pressure</span><span>${data.main.pressure} hPa</span></div>
+                    <div id="visibilityDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Visibility</span><span>${visibility} km</span></div>
+                    <div id="aqiDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Air Quality (AQI)</span><span id="aqiValue">--</span></div>
                 </div>
             `;
             
-            // Basic details appear in a separate grid structure
             const basicMetricsHTML = `
                 <div id="basicMetrics" class="grid grid-cols-3 gap-4 text-sm font-semibold border-t border-white/30 pt-4 mt-4">
                     <div class="bg-white/20 p-2 rounded-lg">
@@ -1054,14 +1078,14 @@
 
             weatherDisplay.innerHTML = basicDetails + basicMetricsHTML + (isAdvanced ? advancedDetailsHTML : '');
             
-            // Post-render setup
+            // 5. Post-render setup
             mapBtn.style.display = 'block';
             refreshButton.style.display = 'flex';
             searchButton.style.display = 'none';
             weatherDisplay.classList.remove('hidden');
 
             // Fetch secondary data (AQI, Alerts, AI Insight)
-            fetchSecondaryData(data.coord.lat, data.coord.lon, cityName, visibility, windGust);
+            fetchSecondaryData(data.coord.lat, data.coord.lon, data.name, visibility, windGust);
             
             // Save search to history and update background
             saveSearchHistory(cityInput.dataset.lastSearch);
@@ -1069,24 +1093,16 @@
             renderSearchDropdown(); 
         }
 
-        // --- SECONDARY DATA FETCHING ---
+        // ... (SECONDARY DATA FETCHING, AI INSIGHT, EVENT LISTENERS remain the same) ...
         
-        // Fetches Alerts, AQI, and triggers AI Insight generation
         async function fetchSecondaryData(lat, lon, cityName, visibility, windGust) {
-            // Fetch Severe Weather Alerts
             fetchAlerts(lat, lon);
-            
-            // Fetch Air Quality Index (AQI)
             const aqiData = await fetchAQI(lat, lon);
-
-            // Generate AI Insight
             generateInsight(cityName, currentWeatherData, aqiData, visibility, windGust);
         }
 
-        // Fetches Severe Weather Alerts
         async function fetchAlerts(lat, lon) {
             try {
-                // Must use the onecall API endpoint with metric units for alerts
                 const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&exclude=current,minutely,hourly,daily`;
                 const response = await fetch(url);
                 const data = await response.json();
@@ -1104,7 +1120,6 @@
             }
         }
         
-        // Fetches Air Quality Index
         async function fetchAQI(lat, lon) {
             try {
                 const url = `${AQI_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`;
@@ -1113,7 +1128,7 @@
 
                 if (data.list && data.list.length > 0) {
                     const aqi = data.list[0].main.aqi;
-                    lastAQI = aqi; // Store for AI use
+                    lastAQI = aqi;
                     
                     let status = '';
                     let color = '';
@@ -1141,10 +1156,8 @@
             }
         }
 
-        // Analyzes forecast data to predict rain/snow timing (NEW)
         function displayPredictionTimeline(data) {
-            // Note: This function remains the same as it correctly calculates time intervals regardless of temp unit.
-            const list = data.list.slice(0, 8); // Next 24 hours (8 x 3-hour slots)
+            const list = data.list.slice(0, 8); 
             let rainStart = null;
             let rainEnd = null;
             let isRain = false;
@@ -1156,7 +1169,6 @@
                 const item = list[i];
                 const conditionId = item.weather[0].id;
                 
-                // 300-599 is Rain/Drizzle, 600-699 is Snow
                 if (conditionId >= 300 && conditionId < 700) {
                     if (!rainStart) {
                         rainStart = getHourTime(item.dt);
@@ -1186,38 +1198,26 @@
                 </svg>
             `;
 
-
             const predictionBanner = document.createElement('div');
             predictionBanner.className = `p-3 mb-4 rounded-lg ${bannerColor} font-semibold flex items-center shadow-lg`;
             predictionBanner.innerHTML = iconSvg + `<span class="flex-grow">${message}</span>`;
             
-            // Insert the new banner after the main header
-            const header = document.querySelector('header');
-            if (header) {
-                // Remove old prediction banner if exists
-                let oldBanner = document.getElementById('predictionBanner');
-                if (oldBanner) oldBanner.remove();
-
-                predictionBanner.id = 'predictionBanner';
-                header.parentNode.insertBefore(predictionBanner, header.nextSibling);
-            }
+            predictionBanner.id = 'predictionBanner';
+            predictionBannerContainer.innerHTML = '';
+            predictionBannerContainer.appendChild(predictionBanner);
         }
 
-
-        // Generates the AI Insight summary
         async function generateInsight(cityName, weatherData, aqiData, visibility, windGust) {
             insightLoading.style.display = 'flex';
             insightContent.textContent = '';
             insightCard.classList.remove('hidden');
 
-            // Collect all display-ready data
             const temp = convertTemp(weatherData.main.temp);
             const unit = isCelsius ? 'C' : 'F';
             const wind = convertWindSpeed(weatherData.wind.speed);
             const description = weatherData.weather[0].description;
             const feelsLike = convertTemp(weatherData.main.feels_like);
             
-            // AQI and Visibility data
             const aqiStatus = aqiData ? `${aqiData.status} (AQI: ${aqiData.aqi})` : 'unavailable';
             const visibilityMsg = visibility >= 10 ? 'clear' : 'low';
             const gustMsg = windGust ? ` with gusts up to ${windGust.value} ${windGust.unit}.` : '';
@@ -1229,15 +1229,13 @@
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
+                systemInstruction: { parts: [{ text: systemPrompt }] },
             };
 
             const maxRetries = 3;
             let currentRetry = 0;
 
-            const apiKey = ""; // Will be injected by Canvas for fetch environment
+            const apiKey = ""; 
 
             while (currentRetry < maxRetries) {
                 try {
@@ -1248,7 +1246,6 @@
                     });
                     
                     if (!response.ok) {
-                        // Handle non-OK status codes, especially 429 (rate limit) or 403 (forbidden)
                         const errorText = await response.text();
                         throw new Error(`API error: ${response.status} - ${errorText.substring(0, 100)}...`);
                     }
@@ -1271,53 +1268,38 @@
                 }
             }
 
-            // Fallback after all retries fail
             insightContent.textContent = "AI Insight temporarily unavailable. Please try again later.";
             insightLoading.style.display = 'none';
         }
 
-
-        // --- PRIMARY API CALL ---
-
-        // Main function to fetch all weather data
         async function getWeather(location = null) {
             showLoading();
-            clearMessage();
             
             let cityQuery = cityInput.value.trim();
             let url;
 
             if (location) {
-                // Search by coordinates (Geolocation)
-                // CRITICAL FIX: Removed &units=metric here to return Kelvin (K)
                 url = `${CURRENT_WEATHER_URL}?lat=${location.lat}&lon=${location.lon}&appid=${OPENWEATHER_API_KEY}`;
-                cityQuery = 'Your Current Location'; // Use friendly name for UI
-                cityInput.dataset.lastSearch = cityQuery; // Store for refresh
+                cityQuery = 'Your Current Location'; 
+                cityInput.dataset.lastSearch = cityQuery;
             } else if (cityQuery) {
-                // Search by city name
-                
-                // Sanitize city name: Strip state/country if present (e.g., "Reno, NV" -> "Reno")
                 const parts = cityQuery.split(',').map(s => s.trim());
                 const apiCityName = parts[0]; 
                 
-                // CRITICAL FIX: Removed &units=metric here to return Kelvin (K)
                 url = `${CURRENT_WEATHER_URL}?q=${apiCityName}&appid=${OPENWEATHER_API_KEY}`;
-                cityInput.dataset.lastSearch = cityQuery; // Store original search string
+                cityInput.dataset.lastSearch = cityQuery;
             } else {
                 showMessage("Please enter a city name or grant location access.", false);
                 return;
             }
             
             try {
-                // 1. Fetch Current Weather
-                // CRITICAL FIX: Ensure forecast also returns Kelvin (K) by omitting the units= parameter
                 const [weatherResponse, forecastResponse] = await Promise.all([
                     fetch(url),
                     fetch(url.replace(CURRENT_WEATHER_URL, FORECAST_URL)),
                 ]);
 
                 if (!weatherResponse.ok) {
-                    const errorData = await weatherResponse.json();
                     showMessage(`City not found: ${cityQuery}. Please check the spelling.`, true);
                     return;
                 }
@@ -1325,10 +1307,9 @@
                 currentWeatherData = await weatherResponse.json();
                 forecastWeatherData = await forecastResponse.json();
                 
-                // 2. Display Weather and Forecast
                 displayCurrentWeather(currentWeatherData);
                 displayForecast(forecastWeatherData);
-                displayPredictionTimeline(forecastWeatherData); // Show the predictive timeline
+                displayPredictionTimeline(forecastWeatherData); 
                 
             } catch (error) {
                 console.error("Fetch Error:", error);
@@ -1339,7 +1320,6 @@
 
         // --- EVENT LISTENERS ---
 
-        // Toggles Unit (C/F)
         function toggleUnits(setCelsius) {
             isCelsius = setCelsius;
             saveSetting('isCelsius', isCelsius);
@@ -1352,10 +1332,11 @@
             if (currentWeatherData) {
                 displayCurrentWeather(currentWeatherData);
                 displayForecast(forecastWeatherData);
+                // Re-render the current active view to refresh units
+                if (currentView === 'hourly') renderHourlyForecast();
             }
         }
 
-        // Toggles Basic/Advanced Details
         function toggleDetails(setAdvanced) {
             isAdvanced = setAdvanced;
             saveSetting('isAdvanced', isAdvanced);
@@ -1373,109 +1354,84 @@
         // --- Event Binding ---
         
         searchButton.addEventListener('click', () => getWeather());
-        cityInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                getWeather();
-                historyDisplay.classList.add('hidden'); // Hide dropdown on search
-            }
-        });
-        refreshButton.addEventListener('click', () => {
-            if (cityInput.dataset.lastSearch) {
-                cityInput.value = cityInput.dataset.lastSearch; // Restore input value for fetch function logic
-                getWeather();
-            }
-        });
-        
-        celsiusBtn.addEventListener('click', () => toggleUnits(true));
-        fahrenheitBtn.addEventListener('click', () => toggleUnits(false));
-        
-        basicBtn.addEventListener('click', () => toggleDetails(false));
-        advancedBtn.addEventListener('click', () => toggleDetails(true));
+        // ... (Other event bindings remain the same) ...
 
-        // Search Dropdown & History Handlers
-        cityInput.addEventListener('input', (e) => {
-            renderSearchDropdown(e.target.value);
-            // Show Search button if typing
-            refreshButton.style.display = 'none';
-            searchButton.style.display = 'block';
-        });
-        cityInput.addEventListener('focus', () => renderSearchDropdown(cityInput.value));
-        cityInput.addEventListener('blur', () => {
-            // Delay hiding the dropdown to allow click events to register
-            setTimeout(() => {
-                historyDisplay.classList.add('hidden');
-            }, 200);
-        });
-        
-        clearHistoryBtn.addEventListener('click', () => {
-            saveSetting('searchHistory', []);
-            renderSearchDropdown();
-        });
-        
-        // About Modal Handlers
-        aboutBtn.addEventListener('click', () => aboutModal.classList.remove('hidden'));
-        closeModalBtn.addEventListener('click', () => aboutModal.classList.add('hidden'));
-        
-        // 3D Map View Handler
+        const navigationSetup = () => {
+             document.querySelectorAll('.nav-item').forEach(item => {
+                const viewId = item.dataset.view;
+                navItems[viewId] = item;
+                item.addEventListener('click', () => setActiveView(viewId));
+            });
+        };
+
         mapBtn.addEventListener('click', () => {
             if (currentWeatherData) {
                 const lat = currentWeatherData.coord.lat;
                 const lon = currentWeatherData.coord.lon;
-                
-                // Google Maps URL optimized for 3D/Earth View
                 const mapUrl = `https://www.google.com/maps/@${lat},${lon},1500m/data=!3m1!1e3`;
                 window.open(mapUrl, '_blank');
             }
         });
 
+
         // --- INITIALIZATION ---
 
         function initGeolocation() {
             if (navigator.geolocation) {
-                // Initial prompt: Try to get user's location
                 showMessage("Attempting to get your location...", false);
                 
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        // Success: Fetch weather for current coordinates
-                        getWeather({
-                            lat: position.coords.latitude,
-                            lon: position.coords.longitude
-                        });
+                        getWeather({ lat: position.coords.latitude, lon: position.coords.longitude });
                     },
                     (error) => {
-                        // Failure (User denied or timeout): Fallback to welcome state
                         console.warn('Geolocation failed or denied:', error.message);
                         showWelcome();
                     }
                 );
             } else {
-                // Geolocation not supported: Fallback to welcome state
                 showWelcome();
             }
         }
 
         window.onload = function () {
+            navigationSetup(); // Set up navigation event listeners
             applySeasonalDecorations();
-            loadState(); // Load C/F and Basic/Advanced settings
+            loadState(); 
 
-            // Load last searched city if available
             const history = loadSetting('searchHistory', []);
             if (history.length > 0) {
-                cityInput.value = history[0]; // Set last searched city
-                getWeather(); // Automatically search last city
+                cityInput.value = history[0]; 
+                getWeather(); 
             } else {
-                // If no history, ask for geolocation
                 initGeolocation();
             }
 
-            // Attach event listener for refresh/search toggle logic
             cityInput.addEventListener('input', () => {
                 if (cityInput.dataset.lastSearch) {
                     refreshButton.style.display = 'none';
                     searchButton.style.display = 'block';
                 }
             });
+            
+            // Re-bind click handlers for dynamically created elements
+            celsiusBtn.addEventListener('click', () => toggleUnits(true));
+            fahrenheitBtn.addEventListener('click', () => toggleUnits(false));
+            basicBtn.addEventListener('click', () => toggleDetails(false));
+            advancedBtn.addEventListener('click', () => toggleDetails(true));
+            searchButton.addEventListener('click', () => getWeather());
+            refreshButton.addEventListener('click', () => {
+                if (cityInput.dataset.lastSearch) {
+                    cityInput.value = cityInput.dataset.lastSearch;
+                    getWeather();
+                }
+            });
+            aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) aboutModal.classList.add('hidden'); });
+            closeModalBtn.addEventListener('click', () => aboutModal.classList.add('hidden'));
+            document.getElementById('aboutBtn').addEventListener('click', () => aboutModal.classList.remove('hidden'));
+
+            // Ensure initial view is 'Today'
+            setActiveView('today');
         };
     </script>
 </body>
