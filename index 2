@@ -963,9 +963,9 @@
             });
 
             const dailyKeys = Object.keys(dailyData);
-            const numDaysToShow = 7; // We explicitly want 7 cards
+            const numDaysToShow = dailyKeys.length; // Use actual available data length
 
-            // NEW FIX: Iterate 7 times to ensure 7 cards are rendered for layout, even if data is missing
+            // NEW FIX: Only iterate over available data to prevent blank/awkward cards
             for (let i = 0; i < numDaysToShow; i++) {
                 const dateKey = dailyKeys[i];
                 let cardHtml = '';
@@ -989,17 +989,6 @@
                                 <p class="text-lg font-bold mb-1">${dayName}</p>
                                 <img src="${ICON_URL}${mostFrequentIcon}@2x.png" alt="${description}" class="mx-auto h-12 w-12">
                                 <p class="text-lg font-semibold mt-1">${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</p>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // Fallback for missing data (Guaranteed 7th card)
-                    cardHtml = `
-                        <div class="transition duration-300">
-                            <div class="w-full p-4 rounded-xl shadow-md text-center bg-gray-100 opacity-50 flex flex-col justify-center items-center h-full">
-                                <p class="text-lg font-bold mb-1 text-gray-500">Day ${i + 1}</p>
-                                <div class="mx-auto h-12 w-12 my-1 bg-gray-300 rounded-full"></div>
-                                <p class="text-xs text-gray-500 mt-1">Data Unavailable</p>
                             </div>
                         </div>
                     `;
@@ -1667,6 +1656,7 @@
     </script>
 </body>
 </html>
+
 
 
 
