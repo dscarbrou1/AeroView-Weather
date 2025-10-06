@@ -136,7 +136,7 @@
 </head>
 <body>
 
-    <div id="app" class="w-full max-w-md bg-white/90 p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-300">
+    <div id="app" class="w-full max-w-xl bg-white/90 p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-300">
         
         <!-- Header -->
         <header class="text-center mb-6">
@@ -1607,5 +1607,6 @@
     </script>
 </body>
 </html>
+
 
 
