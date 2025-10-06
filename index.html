@@ -28,9 +28,9 @@
         /* Main Grid Layout for Desktop (Sidebar + Content + Right Bar) */
         .desktop-layout {
             display: grid;
-            /* Three columns: 220px Sidebar | Flexible Content | 300px Supplementary */
-            grid-template-columns: minmax(180px, 220px) 1fr minmax(280px, 300px); 
-            max-width: 1400px; /* Increased overall width */
+            /* Two columns: 1fr Flexible Content | 300px Supplementary */
+            grid-template-columns: 1fr minmax(280px, 300px); 
+            max-width: 1200px; /* Adjusted overall width for 2 columns */
             width: 95%;
             min-height: 90vh; /* Fill vertical space */
         }
@@ -206,90 +206,38 @@
 
     <div id="app" class="desktop-layout rounded-3xl shadow-2xl transition-all duration-300 overflow-hidden">
         
-        <!-- SIDEBAR NAVIGATION (LEFT COLUMN) -->
-        <div id="sidebar" class="bg-gray-50 p-4 border-r border-gray-200 flex flex-col justify-between">
-            <nav>
-                <div class="text-3xl font-extrabold text-gray-800 mb-6">AeroView</div>
-                <div id="nav-menu" class="space-y-1">
-                    <!-- Navigation Items -->
-                    <button data-view="today" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item nav-active flex items-center transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        Today
-                    </button>
-                    <button data-view="hourly" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Hourly
-                    </button>
-                    <button data-view="tenday" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-4 4h.01M5 12h.01M19 12h.01M6 16h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        10 Day
-                    </button>
-
-                    <!-- NEW NAVIGATION ITEMS -->
-                    <button data-view="radar" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2v-7a2 2 0 00-2-2h-7a2 2 0 00-2 2v7a2 2 0 002 2z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 9.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12 2v.75a.75.75 0 01-1.5 0V2a.75.75 0 011.5 0zM4 9.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0z" /></svg>
-                        Radar
-                    </button>
-                    <button data-view="video" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.55-4.55a1 1 0 011.45 0v12.1a1 1 0 01-1.45 0L15 14v1a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1h10a1 1 0 011 1v1z" /></svg>
-                        Video
-                    </button>
-                    
-                    <!-- Severe Weather Submenu -->
-                    <div class="space-y-1">
-                        <button id="severeWeatherToggle" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 flex items-center transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V9a1 1 0 10-2 0V6zm0 5a1 1 0 102 0 1 1 0 00-2 0z" clip-rule="evenodd" /></svg>
-                            Severe Weather
-                            <svg id="severeWeatherArrow" class="h-4 w-4 ml-auto transform transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                        </button>
-                        <div id="severeWeatherSubmenu" class="hidden flex flex-col pl-2">
-                            <a href="#" class="sub-nav-item">Hurricane Central</a>
-                            <a href="#" class="sub-nav-item">Tornado Central</a>
-                            <a href="#" class="sub-nav-item">Safety & Prep</a>
-                        </div>
-                    </div>
-
-                </div>
-            </nav>
-            
-            <footer class="text-sm text-gray-400">
-                <button id="aboutBtn" class="hover:text-gray-600 transition underline">About AeroView</button>
-            </footer>
-        </div>
-
         <!-- MAIN CONTENT AREA (CENTER COLUMN) -->
         <div id="main-content" class="bg-white/90 p-6 md:p-8 overflow-y-auto border-r border-gray-200">
             
-            <!-- Top Search and Global Controls -->
-            <div class="flex justify-between items-center mb-6">
-                <!-- Search Input Group -->
-                <div class="flex flex-grow max-w-lg space-x-3">
-                    <div class="relative flex-grow">
-                        <input type="text" id="cityInput" placeholder="Search City or Zip Code" 
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
-                        <button id="refreshButton" 
-                                class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-center"
-                                style="display: none;">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v1h2a1 1 0 011 1v2a1 1 0 01-1 1H5v2h2a1 1 0 011 1v2a1 1 0 01-1 1H5v1a1 1 0 01-2 0v-1H2a1 1 0 01-1-1v-2a1 1 0 011-1h1V8H2a1 1 0 01-1-1V5a1 1 0 011-1h1V3a1 1 0 011-1zm6.5 7.728l3.182-3.182a4 4 0 00-5.657-5.657L6.818 3.343a6 6 0 118.485 8.485l-3.182 3.182a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
-                            </svg>
+            <!-- Header/Search Bar -->
+            <header class="text-center mb-6 flex flex-col items-start lg:items-center">
+                <h1 class="text-3xl font-extrabold text-gray-800 mb-2">AeroView</h1>
+                <p class="text-sm text-gray-500 mb-4">Current Weather & Insight</p>
+
+                <!-- Search and Global Controls -->
+                <div class="flex justify-between items-center w-full max-w-2xl mx-auto space-x-3">
+                    <div class="flex flex-grow space-x-3">
+                        <div class="relative flex-grow">
+                            <input type="text" id="cityInput" placeholder="Search City or Zip Code" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
+                            <button id="refreshButton" 
+                                    class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-center"
+                                    style="display: none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v1h2a1 1 0 011 1v2a1 1 0 01-1 1H5v2h2a1 1 0 011 1v2a1 1 0 01-1 1H5v1a1 1 0 01-2 0v-1H2a1 1 0 01-1-1v-2a1 1 0 011-1h1V8H2a1 1 0 01-1-1V5a1 1 0 011-1h1V3a1 1 0 011-1zm6.5 7.728l3.182-3.182a4 4 0 00-5.657-5.657L6.818 3.343a6 6 0 118.485 8.485l-3.182 3.182a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                        <button id="searchButton" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95">
+                            Search
                         </button>
                     </div>
-                    <button id="searchButton" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 transform hover:scale-105 active:scale-95">
-                        Search
-                    </button>
                 </div>
-
-                <!-- Unit Controls -->
-                <div class="flex p-1 bg-gray-200 rounded-lg shadow-inner ml-4 flex-shrink-0">
-                    <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°C</button>
-                    <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°F</button>
-                </div>
-            </div>
-
+            </header>
+            
             <!-- Search History List/Suggestions Dropdown -->
-            <div id="historyContainer" class="relative max-w-lg">
+            <div id="historyContainer" class="relative w-full max-w-2xl mx-auto">
                 <div id="historyDisplay" 
                     class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto mt-[-10px] hidden">
                     <div id="historyHeader" class="flex justify-between items-center p-2 border-b text-gray-500 text-xs font-semibold">
@@ -328,8 +276,13 @@
                         <!-- Current weather content will be injected here -->
                     </div>
                     
-                    <!-- Advanced Controls and 3D Map -->
+                    <!-- Controls (Unit, Detail, 3D Map) -->
                     <div class="flex justify-center flex-wrap gap-x-6 gap-y-3 mt-6">
+                        <!-- Unit Controls -->
+                        <div class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
+                            <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°C</button>
+                            <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">°F</button>
+                        </div>
                         <div id="detailToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
                             <button id="basicBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Basic</button>
                             <button id="advancedBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Advanced</button>
@@ -342,7 +295,24 @@
                         </button>
                     </div>
 
-                    <!-- Additional Details Panel (New) -->
+                    <!-- Hourly and 10 Day Forecast Display (Moved below core content) -->
+                    <div id="hourlyForecastSection" class="hidden mt-6">
+                         <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">Hourly Forecast (Next 24 Hours)</h2>
+                         <div id="hourlyDisplay" class="hourly-scroll flex overflow-x-auto">
+                            <!-- Hourly forecast cards injected here -->
+                        </div>
+                    </div>
+                    
+                    <div id="forecastWrapper" class="mt-8">
+                        <h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">7 Day Forecast</h2>
+                        <div id="forecastSection" class="mt-4">
+                            <div id="forecastDisplay" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3">
+                                <!-- Daily forecast cards will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Details Panel (Moved below Forecasts) -->
                     <div id="additionalDetailsPanel" class="mt-8 supplementary-box">
                         <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">More Details</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -369,55 +339,14 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- HOURLY FORECAST VIEW -->
-                <div id="hourly-view" class="view hidden">
-                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Hourly Forecast</h2>
-                     <!-- Content rendered in hourlyDisplay -->
-                     <div id="hourlyForecastSection" class="mt-4">
-                        <div id="hourlyDisplay" class="hourly-scroll flex overflow-x-auto">
-                            <!-- Hourly forecast cards injected here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7 DAY FORECAST VIEW -->
-                <div id="tenday-view" class="view hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">10 Day Forecast</h2>
-                    <!-- Content rendered in forecastDisplay -->
-                     <div id="forecastSection" class="mt-6">
-                        <div id="forecastDisplay" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-                            <!-- Daily forecast cards will be injected here -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- RADAR VIEW (New Placeholder) -->
-                <div id="radar-view" class="view hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Local Radar Map</h2>
-                    <div class="bg-gray-100 p-8 rounded-xl border border-gray-300 text-center text-gray-600">
-                        <p class="mb-2">Radar map requires advanced API integration.</p>
-                        <p class="font-semibold">Future Feature: Display live precipitation map for current location here.</p>
-                    </div>
-                </div>
-
-                <!-- VIDEO VIEW (New Placeholder) -->
-                <div id="video-view" class="view hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Weather Video Reports</h2>
-                    <div id="videoContentContainer" class="bg-gray-100 p-4 rounded-xl border border-gray-300 text-center text-gray-600 flex justify-center items-center h-96">
-                        <p>Search for a city to load relevant videos.</p>
-                    </div>
-                </div>
-                <!-- Severe Weather Information (Placeholder for Submenu items) -->
-                <div id="severe-weather-info" class="view hidden">
-                     <h2 class="text-2xl font-bold text-red-700 mb-4">Severe Weather Information</h2>
-                     <div class="bg-red-50 p-8 rounded-xl border border-red-300 text-center text-red-800">
-                        <p class="mb-2">Safety pages and hurricane/tornado data would be displayed here.</p>
-                        <p class="font-semibold">This is the framework for your national safety information pages.</p>
-                    </div>
-                </div>
+                <!-- DUMMY/VIDEO VIEW - Content moved to TODAY view -->
+                <div id="hourly-view" class="view hidden"></div>
+                <div id="tenday-view" class="view hidden"></div>
+                <div id="radar-view" class="view hidden"></div>
+                <div id="video-view" class="view hidden"></div>
+                <div id="severe-weather-info" class="view hidden"></div>
 
             </div>
 
@@ -455,7 +384,7 @@
 
             <!-- Footer for Main Content -->
             <footer class="mt-6 text-center text-sm text-gray-400">
-                <p>Weather data from OpenWeatherMap.</p>
+                <p>Weather data from OpenWeatherMap. <button id="aboutBtn" class="hover:text-gray-600 transition underline">About AeroView</button></p>
             </footer>
         </div>
         
@@ -482,38 +411,8 @@
                 </div>
             </div>
             
-            <!-- Health & Wellness Summary (New Box) -->
-            <div class="supplementary-box">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Health & Activities</h3>
-                <div class="space-y-3">
-                    <div class="flex items-center space-x-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <div>
-                            <p class="font-semibold text-gray-800">Running/Walking</p>
-                            <p class="text-sm text-gray-600">Great conditions.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        <div>
-                            <p class="font-semibold text-gray-800">Sun Protection</p>
-                            <p class="text-sm text-gray-600" id="rightUvAdvice">UV Index is low (0).</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Health & Activities and Promotion/Ad boxes were removed here -->
             
-            <!-- Promotion/Ad Box (To match commercial sites) -->
-            <div class="supplementary-box supplementary-box-ad text-center">
-                <h4 class="font-bold text-red-700 mb-2">Support Local Weather!</h4>
-                <p class="text-sm text-red-600">
-                    Your donations help keep the servers running and the forecasts accurate.
-                </p>
-                <button class="mt-3 w-full bg-red-600 text-white py-2 rounded-lg font-bold hover:bg-red-700 transition">
-                    Donate to Red Cross 
-                </button>
-            </div>
-
         </div>
 
     </div>
@@ -713,7 +612,7 @@
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('nav-active');
             });
-            navItems[viewId]?.classList.add('nav-active');
+            // We removed sidebar, so we skip nav item activation here to prevent errors.
         }
 
         // Converts Kelvin to Celsius
@@ -1030,47 +929,10 @@
 
         // --- DISPLAY FUNCTIONS ---
 
-        // Sets the selected day for the hourly forecast
-        function selectForecastDay(dayIndex) {
-            selectedForecastDay = dayIndex;
-            renderHourlyForecast();
-            // Update button styles
-            document.getElementById('forecastDisplay').querySelectorAll('div').forEach((dayEl, index) => {
-                dayEl.querySelector('button').classList.remove('date-selector-active');
-                if (index === dayIndex) {
-                    dayEl.querySelector('button').classList.add('date-selector-active');
-                }
-            });
-            // Switch to the 7 Day View after selection
-            setActiveView('tenday');
-        }
-
-        // Renders the hourly forecast for the currently selected day
+        // Renders the hourly forecast for the currently displayed day
         function renderHourlyForecast() {
-            hourlyDisplay.innerHTML = '';
-            
-            if (!forecastWeatherData || !forecastWeatherData.list) return;
-
-            // Find the starting index for the selected day
-            const dayStart = selectedForecastDay * 8; 
-            const hourlyList = forecastWeatherData.list.slice(dayStart, dayStart + 8);
-            
-            // Display next 8 * 3-hour slots (24 hours) for the selected day
-            hourlyList.forEach(item => {
-                const temp = convertTemp(item.main.temp);
-                const time = getHourTime(item.dt);
-                const iconCode = item.weather[0].icon;
-
-                const cardHtml = `
-                    <div class="hourly-card bg-gray-100 p-2 rounded-xl shadow-md text-center text-gray-800 transition transform hover:scale-105">
-                        <p class="text-xs font-semibold">${time}</p>
-                        <img src="${ICON_URL}${iconCode}.png" alt="Icon" class="mx-auto h-8 w-8">
-                        <p class="text-lg font-bold">${temp}°${isCelsius ? 'C' : 'F'}</p>
-                        <p class="text-xs text-gray-500">${Math.round(item.pop * 100)}% chance</p>
-                    </div>
-                `;
-                hourlyDisplay.innerHTML += cardHtml;
-            });
+            // Since we removed hourly/tenday views, this function is now defunct
+            // The 7-day forecast cards are standalone, so we will not render this section.
         }
 
         // Renders the 7-Day forecast cards 
@@ -1116,21 +978,15 @@
 
                 const cardHtml = `
                     <div class="transition duration-300">
-                        <button onclick="selectForecastDay(${index})" 
-                                class="w-full p-4 rounded-xl shadow-md text-center bg-gray-100 transform hover:scale-105 transition">
+                        <div class="w-full p-4 rounded-xl shadow-md text-center bg-gray-100 transform hover:scale-105 transition">
                             <p class="text-lg font-bold mb-1">${dayName}</p>
                             <img src="${ICON_URL}${mostFrequentIcon}@2x.png" alt="${description}" class="mx-auto h-12 w-12">
                             <p class="text-lg font-semibold mt-1">${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</p>
-                        </button>
+                        </div>
                     </div>
                 `;
                 forecastDisplay.innerHTML += cardHtml;
             });
-
-            // Set up hourly forecast for the first day by default
-            selectedForecastDay = 0;
-            renderHourlyForecast(); 
-            selectForecastDay(0); // Activate the first day button
         }
 
         // Renders current weather details (Today View)
@@ -1263,11 +1119,11 @@
                 generateInsight(cityName, currentWeatherData, aqiData, currentWeatherData.visibility, currentWeatherData.wind.gust, 0); // Default UV to 0
             }
             
-            // NEW: Fetch video data for the current city
-            fetchWeatherVideo(cityName);
+            // NEW: Video feature is now deactivated with the hourly/tenday removal, but we keep the fetch call structured
+            // fetchWeatherVideo(cityName);
         }
         
-        // NEW FUNCTION: Fetch video data using Google Search
+        // NEW FUNCTION: Fetch video data using Google Search (Function is still defined but not called in fetchSecondaryData)
         async function fetchWeatherVideo(cityName) {
             videoContentContainer.innerHTML = `<p class="text-lg text-blue-600 flex items-center">
                 <svg class="spinner h-5 w-5 mr-2" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle></svg>
@@ -1294,7 +1150,7 @@
                 if (!response.ok) throw new Error("Video search API failed.");
 
                 const result = await response.json();
-                const videoUrl = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                    const videoUrl = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
                 if (videoUrl && videoUrl.includes("youtube.com")) {
                     const videoIdMatch = videoUrl.match(/(?:v=|\/embed\/|\/watch\?v=|\.be\/)([^&"'>]+)/);
@@ -1331,7 +1187,7 @@
         async function fetchOneCallData(lat, lon) {
             try {
                 // We only need current data, minutely, and daily for full forecast/alerts
-                const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&exclude=minutely,hourly`;
+                const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`;
                 const response = await fetch(url);
                 
                 if (!response.ok) {
@@ -1398,17 +1254,6 @@
 
             document.getElementById('moonphaseValue').textContent = phaseName;
 
-            // Health & Activities Advice (Right Sidebar)
-            const rightUvAdviceEl = document.getElementById('rightUvAdvice');
-            if (rightUvAdviceEl) {
-                if (currentUV >= 6) {
-                    rightUvAdviceEl.innerHTML = `**UV Index is High (${currentUV})**: Use SPF 30+ and seek shade.`;
-                } else if (currentUV >= 3) {
-                     rightUvAdviceEl.innerHTML = `**UV Index is Moderate (${currentUV})**: Wear a hat and sunglasses.`;
-                } else {
-                     rightUvAdviceEl.innerHTML = `UV Index is Low (${currentUV}).`;
-                }
-            }
         }
         
         async function fetchAQI(lat, lon) {
@@ -1624,8 +1469,6 @@
             if (currentWeatherData) {
                 displayCurrentWeather(currentWeatherData);
                 displayForecast(forecastWeatherData);
-                // Re-render the current active view to refresh units
-                if (currentView === 'hourly') renderHourlyForecast();
             }
         }
 
@@ -1704,31 +1547,13 @@
             }
         });
         
-        // Severe Weather Toggle Handler
-        const severeWeatherToggle = document.getElementById('severeWeatherToggle');
-        const severeWeatherSubmenu = document.getElementById('severeWeatherSubmenu');
-        const severeWeatherArrow = document.getElementById('severeWeatherArrow');
+        // Severe Weather Toggle Handler is now obsolete as the menu is removed
         
-        severeWeatherToggle.addEventListener('click', () => {
-            const isHidden = severeWeatherSubmenu.classList.toggle('hidden');
-            severeWeatherArrow.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
-        });
-        
-        // Navigation Handler
+        // Navigation Handler (Now only targets the today view since other views were removed)
         document.querySelectorAll('.nav-item').forEach(item => {
             const viewId = item.dataset.view;
             navItems[viewId] = item;
-            item.addEventListener('click', () => setActiveView(viewId));
-        });
-        // Sub-navigation link handler (for Severe Weather mock pages)
-        document.querySelectorAll('.sub-nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                setActiveView('severe-weather-info');
-                // You could load specific content into the severe-weather-info view here based on item.textContent
-                const infoTitle = document.querySelector('#severe-weather-info h2');
-                infoTitle.textContent = item.textContent;
-            });
+            item.addEventListener('click', () => setActiveView('today')); // Always go to today view now
         });
 
 
