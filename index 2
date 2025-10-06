@@ -296,7 +296,8 @@
                     <div id="weatherDisplay" class="hidden text-center p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02]">
                         <!-- Current weather content will be injected here -->
                     </div>
-                    <!-- Basic / Advanced Toggle -->
+                    
+                    <!-- Advanced Controls and 3D Map -->
                     <div class="flex justify-center flex-wrap gap-x-6 gap-y-3 mt-6">
                         <div id="detailToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
                             <button id="basicBtn" class="px-3 py-1 rounded-md text-sm font-bold transition">Basic</button>
@@ -308,6 +309,35 @@
                             </svg>
                             View 3D Map
                         </button>
+                    </div>
+
+                    <!-- Additional Details Panel (New) -->
+                    <div id="additionalDetailsPanel" class="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">More Details</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
+                            
+                            <!-- Moonrise/Moonset (Placeholder for now, requires API adjustments) -->
+                            <div class="space-y-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                                <p class="text-sm text-gray-700 font-semibold">Moonrise</p>
+                                <p class="text-base font-bold text-gray-800" id="moonriseTime">--</p>
+                            </div>
+                            <div class="space-y-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                <p class="text-sm text-gray-700 font-semibold">UV Index</p>
+                                <p class="text-base font-bold text-gray-800" id="uvIndexValue">--</p>
+                            </div>
+                            <div class="space-y-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                <p class="text-sm text-gray-700 font-semibold">Pressure</p>
+                                <p class="text-base font-bold text-gray-800" id="pressureValue">--</p>
+                            </div>
+                            <div class="space-y-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                <p class="text-sm text-gray-700 font-semibold">Visibility</p>
+                                <p class="text-base font-bold text-gray-800" id="visibilityValue">--</p>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -723,7 +753,7 @@
                 const itemEl = document.createElement('div');
                 itemEl.textContent = item;
                 itemEl.className = 'p-2 cursor-pointer text-gray-700 hover:bg-blue-100 transition duration-150';
-                itemEl.onmousedown = (e) => { // Use mousedown to prevent blur event from hiding dropdown
+                itemEl.onmousedown = (e) => { // CRITICAL FIX: Use mousedown
                     e.preventDefault();
                     cityInput.value = item;
                     historyDisplay.classList.add('hidden');
@@ -1047,17 +1077,19 @@
                 </div>
             `;
 
+            // Advanced details are integrated into the main panel (Hidden/Shown by toggle)
             const advancedDetailsHTML = `
                 <div id="advancedDetails" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-sm font-semibold border-t border-white/30 pt-4">
                     <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Sunrise</span><span>${sunrise}</span></div>
                     <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Sunset</span><span>${sunset}</span></div>
                     <div id="minMaxTemp" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Min/Max</span><span>${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</span></div>
                     <div id="pressureDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Pressure</span><span>${data.main.pressure} hPa</span></div>
-                    <div id="visibilityDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Visibility</span><span>${visibility} km</span></div>
+                    <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Visibility</span><span>${visibility} km</span></div>
                     <div id="aqiDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Air Quality (AQI)</span><span id="aqiValue">--</span></div>
                 </div>
             `;
             
+            // The essential metrics block (Wind, Feels Like, Humidity)
             const basicMetricsHTML = `
                 <div id="basicMetrics" class="grid grid-cols-3 gap-4 text-sm font-semibold border-t border-white/30 pt-4 mt-4">
                     <div class="bg-white/20 p-2 rounded-lg">
@@ -1075,6 +1107,41 @@
                     </div>
                 </div>
             `;
+            
+            // Build the separate panel for Moon Phase, UV, etc. (NEW)
+            const moonPhase = 'Waxing Gibbous'; // Placeholder - requires a separate API call for real data
+            const uvIndex = '0 of 11'; // Placeholder for real data
+            const moonrise = formatTime(data.sys.sunrise - 3600, data.timezone); // Mock Moonrise
+            const moonset = formatTime(data.sys.sunset + 7200, data.timezone); // Mock Moonset
+            const pressure = data.main.pressure;
+
+            document.getElementById('additionalDetailsPanel').innerHTML = `
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Moon & Wellness</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 text-center">
+                    
+                    <div class="space-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                        <p class="text-sm text-gray-700 font-semibold">Moonrise</p>
+                        <p class="text-base font-bold text-gray-800" id="moonriseTime">${moonrise}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        <p class="text-sm text-gray-700 font-semibold">UV Index</p>
+                        <p class="text-base font-bold text-gray-800" id="uvIndexValue">${uvIndex}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        <p class="text-sm text-gray-700 font-semibold">Pressure</p>
+                        <p class="text-base font-bold text-gray-800" id="pressureValue">${pressure} hPa</p>
+                    </div>
+                    <div class="space-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        <p class="text-sm text-gray-700 font-semibold">Moon Phase</p>
+                        <p class="text-base font-bold text-gray-800" id="moonphaseValue">${moonPhase}</p>
+                    </div>
+                </div>
+            `;
+
 
             weatherDisplay.innerHTML = basicDetails + basicMetricsHTML + (isAdvanced ? advancedDetailsHTML : '');
             
@@ -1354,23 +1421,67 @@
         // --- Event Binding ---
         
         searchButton.addEventListener('click', () => getWeather());
-        // ... (Other event bindings remain the same) ...
+        cityInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                getWeather();
+                historyDisplay.classList.add('hidden'); // Hide dropdown on search
+            }
+        });
+        refreshButton.addEventListener('click', () => {
+            if (cityInput.dataset.lastSearch) {
+                cityInput.value = cityInput.dataset.lastSearch; // Restore input value for fetch function logic
+                getWeather();
+            }
+        });
+        
+        celsiusBtn.addEventListener('click', () => toggleUnits(true));
+        fahrenheitBtn.addEventListener('click', () => toggleUnits(false));
+        
+        basicBtn.addEventListener('click', () => toggleDetails(false));
+        advancedBtn.addEventListener('click', () => toggleDetails(true));
 
-        const navigationSetup = () => {
-             document.querySelectorAll('.nav-item').forEach(item => {
-                const viewId = item.dataset.view;
-                navItems[viewId] = item;
-                item.addEventListener('click', () => setActiveView(viewId));
-            });
-        };
+        // Search Dropdown & History Handlers
+        cityInput.addEventListener('input', (e) => {
+            renderSearchDropdown(e.target.value);
+            // Show Search button if typing
+            refreshButton.style.display = 'none';
+            searchButton.style.display = 'block';
+        });
+        cityInput.addEventListener('focus', () => renderSearchDropdown(cityInput.value));
+        cityInput.addEventListener('blur', () => {
+            // Delay hiding the dropdown to allow click events to register
+            setTimeout(() => {
+                historyDisplay.classList.add('hidden');
+            }, 200);
+        });
+        
+        clearHistoryBtn.addEventListener('click', () => {
+            saveSetting('searchHistory', []);
+            renderSearchDropdown();
+        });
+        
+        // About Modal Handlers
+        document.getElementById('aboutBtn').addEventListener('click', () => aboutModal.classList.remove('hidden'));
+        closeModalBtn.addEventListener('click', () => aboutModal.classList.add('hidden'));
+        aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) aboutModal.classList.add('hidden'); });
 
+        // 3D Map View Handler
         mapBtn.addEventListener('click', () => {
             if (currentWeatherData) {
                 const lat = currentWeatherData.coord.lat;
                 const lon = currentWeatherData.coord.lon;
+                
+                // Google Maps URL optimized for 3D/Earth View
                 const mapUrl = `https://www.google.com/maps/@${lat},${lon},1500m/data=!3m1!1e3`;
                 window.open(mapUrl, '_blank');
             }
+        });
+        
+        // Navigation Handler
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const viewId = item.dataset.view;
+            navItems[viewId] = item;
+            item.addEventListener('click', () => setActiveView(viewId));
         });
 
 
@@ -1395,7 +1506,6 @@
         }
 
         window.onload = function () {
-            navigationSetup(); // Set up navigation event listeners
             applySeasonalDecorations();
             loadState(); 
 
@@ -1426,9 +1536,6 @@
                     getWeather();
                 }
             });
-            aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) aboutModal.classList.add('hidden'); });
-            closeModalBtn.addEventListener('click', () => aboutModal.classList.add('hidden'));
-            document.getElementById('aboutBtn').addEventListener('click', () => aboutModal.classList.remove('hidden'));
 
             // Ensure initial view is 'Today'
             setActiveView('today');
@@ -1436,7 +1543,6 @@
     </script>
 </body>
 </html>
-
 
 
 
