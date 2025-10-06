@@ -25,11 +25,12 @@
             padding: 1rem;
         }
         
-        /* Main Grid Layout for Desktop (Sidebar + Content) */
+        /* Main Grid Layout for Desktop (Sidebar + Content + Right Bar) */
         .desktop-layout {
             display: grid;
-            grid-template-columns: minmax(180px, 250px) 1fr; /* Fixed sidebar, flexible content */
-            max-width: 1200px; /* Wider overall app container */
+            /* Three columns: 220px Sidebar | Flexible Content | 300px Supplementary */
+            grid-template-columns: minmax(180px, 220px) 1fr minmax(280px, 300px); 
+            max-width: 1400px; /* Increased overall width */
             width: 95%;
             min-height: 90vh; /* Fill vertical space */
         }
@@ -40,19 +41,19 @@
                 flex-direction: column;
                 min-height: auto;
             }
-            #sidebar { display: none; }
+            #sidebar, #right-sidebar { display: none; }
             #main-content { padding: 1rem; }
         }
 
         /* --- STYLING RESTORED --- */
         #app {
-            max-width: none; /* Removed fixed width, now controlled by .desktop-layout */
+            max-width: none;
             width: 100%;
-            border: 2px solid rgba(255, 255, 255, 0.9); /* Added clean white border */
+            border: 2px solid rgba(255, 255, 255, 0.9); 
         }
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
-            height: 8px; /* Height for horizontal scrollbar */
+            height: 8px; 
             width: 8px;
         }
         ::-webkit-scrollbar-thumb {
@@ -64,20 +65,20 @@
         }
         /* Style for the active unit button */
         .unit-active {
-            background-color: #3b82f6; /* blue-500 */
+            background-color: #3b82f6;
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5), 0 2px 4px -2px rgba(59, 130, 246, 0.5); /* glow effect */
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5), 0 2px 4px -2px rgba(59, 130, 246, 0.5); 
         }
         .unit-inactive {
-            background-color: #e5e7eb; /* gray-200 */
-            color: #4b5563; /* gray-600 */
+            background-color: #e5e7eb;
+            color: #4b5563;
         }
         /* Sidebar Navigation Active State */
         .nav-active {
-            background-color: #e0f2fe; /* blue-50 */
-            color: #1d4ed8; /* blue-700 */
+            background-color: #e0f2fe;
+            color: #1d4ed8;
             font-weight: 700;
-            border-bottom: 2px solid #3b82f6; /* Blue bottom border for active tab */
+            border-bottom: 2px solid #3b82f6; 
         }
         /* History Item Focus Override */
         #cityInput:focus + #historyContainer > #historyDisplay {
@@ -185,6 +186,18 @@
             background-color: #f3f4f6; /* gray-100 */
             color: #1f2937; /* gray-800 */
         }
+        
+        /* Box for Supplementary Content */
+        .supplementary-box {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .supplementary-box-ad {
+            background-color: #fef2f2; /* red-50 */
+            border: 1px dashed #f87171; /* red-400 */
+        }
     </style>
 </head>
 <body>
@@ -244,8 +257,8 @@
             </footer>
         </div>
 
-        <!-- MAIN CONTENT AREA (RIGHT COLUMN) -->
-        <div id="main-content" class="bg-white/90 p-6 md:p-8 overflow-y-auto">
+        <!-- MAIN CONTENT AREA (CENTER COLUMN) -->
+        <div id="main-content" class="bg-white/90 p-6 md:p-8 overflow-y-auto border-r border-gray-200">
             
             <!-- Top Search and Global Controls -->
             <div class="flex justify-between items-center mb-6">
@@ -310,25 +323,6 @@
                         <!-- Prediction Banner will be inserted here -->
                     </div>
 
-                    <!-- AI INSIGHT CARD -->
-                    <div id="insightCard" class="hidden p-4 mb-6 bg-white rounded-xl shadow-lg border-l-4 border-blue-500">
-                        <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M5.5 10a.5.5 0 01.5-.5h2a.5.5 0 010 1H6a.5.5 0 01-.5-.5zm.5 2a.5.5 0 000 1h2a.5.5 0 000-1H6a.5.5 0 00-.5.5zm10-5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM16 8a.5.5 0 000 1h2a.5.5 0 000-1h-2z" />
-                                <path fill-rule="evenodd" d="M18.442 8.796a4.43 4.43 0 011.025.267 1 1 0 01.533.888v.175a1 1 0 01-.225.641l-2.023 2.768a1 1 0 01-.98.375h-2.128a1 1 0 01-.914-.582 1 1 0 01.196-.924c.036-.04.07-.08.106-.12l1.62-1.74a1 1 0 00-.773-1.614h-3.414l.001 2.5a1 1 0 01-1 1H5a1 1 0 01-1-1v-2.5H.5a.5.5 0 010-1h3.5v-2.5a1 1 0 011-1h6.414a1 1 0 00.773-1.614l-1.62-1.74a1 1 0 01-.196-.924 1 1 0 01.914-.582h2.128a1 1 0 01.98.375l2.023 2.768a1 1 0 01.225.641v.175a.5.5 0 01-.533.488zM15 11h-2v2h2v-2zM7 11H5v2h2v-2z" clip-rule="evenodd"/>
-                            </svg>
-                            AeroView Insight
-                        </h3>
-                        <div id="insightContent" class="text-sm text-gray-600 italic">
-                            <!-- AI generated text goes here -->
-                        </div>
-                        <div id="insightLoading" class="text-sm text-gray-500 mt-2 italic flex items-center">
-                            <svg class="spinner h-4 w-4 mr-1 text-blue-500" viewBox="0 0 50 50">
-                                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
-                            </svg>
-                            Generating AI summary...
-                        </div>
-                    </div>
                     <!-- Current Weather Card Display -->
                     <div id="weatherDisplay" class="hidden text-center p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02]">
                         <!-- Current weather content will be injected here -->
@@ -349,27 +343,26 @@
                     </div>
 
                     <!-- Additional Details Panel (New) -->
-                    <div id="additionalDetailsPanel" class="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                    <div id="additionalDetailsPanel" class="mt-8 supplementary-box">
                         <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">More Details</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                             
-                            <!-- Moonrise/Moonset (Placeholder for now, requires API adjustments) -->
-                            <div class="space-y-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                            <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                                 <p class="text-sm text-gray-700 font-semibold">Moonrise</p>
                                 <p class="text-base font-bold text-gray-800" id="moonriseTime">--</p>
                             </div>
-                            <div class="space-y-1">
+                            <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                 <p class="text-sm text-gray-700 font-semibold">UV Index</p>
                                 <p class="text-base font-bold text-gray-800" id="uvIndexValue">--</p>
                             </div>
-                            <div class="space-y-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                 <p class="text-sm text-gray-700 font-semibold">Pressure</p>
                                 <p class="text-base font-bold text-gray-800" id="pressureValue">--</p>
                             </div>
-                            <div class="space-y-1">
+                            <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                 <p class="text-sm text-gray-700 font-semibold">Moon Phase</p>
                                 <p class="text-base font-bold text-gray-800" id="moonphaseValue">--</p>
@@ -466,6 +459,64 @@
                 <p>Weather data from OpenWeatherMap.</p>
             </footer>
         </div>
+        
+        <!-- RIGHT SIDEBAR (SUPPLEMENTARY CONTENT) -->
+        <div id="right-sidebar" class="bg-gray-50 p-4 border-l border-gray-200 overflow-y-auto space-y-6">
+            
+            <!-- AI INSIGHT CARD (Moved from Center) -->
+            <div id="insightCard" class="supplementary-box border-l-4 border-blue-500">
+                <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5.5 10a.5.5 0 01.5-.5h2a.5.5 0 010 1H6a.5.5 0 01-.5-.5zm.5 2a.5.5 0 000 1h2a.5.5 0 000-1H6a.5.5 0 00-.5.5zm10-5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zM16 8a.5.5 0 000 1h2a.5.5 0 000-1h-2z" />
+                        <path fill-rule="evenodd" d="M18.442 8.796a4.43 4.43 0 011.025.267 1 1 0 01.533.888v.175a1 1 0 01-.225.641l-2.023 2.768a1 1 0 01-.98.375h-2.128a1 1 0 01-.914-.582 1 1 0 01.196-.924c.036-.04.07-.08.106-.12l1.62-1.74a1 1 0 00-.773-1.614h-3.414l.001 2.5a1 1 0 01-1 1H5a1 1 0 01-1-1v-2.5H.5a.5.5 0 010-1h3.5v-2.5a1 1 0 011-1h6.414a1 1 0 00.773-1.614l-1.62-1.74a1 1 0 01-.196-.924 1 1 0 01.914-.582h2.128a1 1 0 01.98.375l2.023 2.768a1 1 0 01.225.641v.175a.5.5 0 01-.533.488zM15 11h-2v2h2v-2zM7 11H5v2h2v-2z" clip-rule="evenodd"/>
+                    </svg>
+                    AeroView Insight
+                </h3>
+                <div id="insightContent" class="text-sm text-gray-600 italic">
+                    <!-- AI generated text goes here -->
+                </div>
+                <div id="insightLoading" class="text-sm text-gray-500 mt-2 italic flex items-center">
+                    <svg class="spinner h-4 w-4 mr-1 text-blue-500" viewBox="0 0 50 50">
+                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle>
+                    </svg>
+                    Generating AI summary...
+                </div>
+            </div>
+            
+            <!-- Health & Wellness Summary (New Box) -->
+            <div class="supplementary-box">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Health & Activities</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div>
+                            <p class="font-semibold text-gray-800">Running/Walking</p>
+                            <p class="text-sm text-gray-600">Great conditions.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        <div>
+                            <p class="font-semibold text-gray-800">Sun Protection</p>
+                            <p class="text-sm text-gray-600" id="rightUvAdvice">UV Index is low (0).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Promotion/Ad Box (To match commercial sites) -->
+            <div class="supplementary-box supplementary-box-ad text-center">
+                <h4 class="font-bold text-red-700 mb-2">Support Local Weather!</h4>
+                <p class="text-sm text-red-600">
+                    Your donations help keep the servers running and the forecasts accurate.
+                </p>
+                <button class="mt-3 w-full bg-red-600 text-white py-2 rounded-lg font-bold hover:bg-red-700 transition">
+                    Donate to Red Cross 
+                </button>
+            </div>
+
+        </div>
+
     </div>
     
     <!-- About Modal -->
@@ -1146,7 +1197,7 @@
                     <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Sunrise</span><span>${sunrise}</span></div>
                     <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Sunset</span><span>${sunset}</span></div>
                     <div id="minMaxTemp" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Min/Max</span><span>${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</span></div>
-                    <div id="pressureDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Pressure</span><span>${data.main.pressure} hPa</span></div>
+                    <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Pressure</span><span>${data.main.pressure} hPa</span></div>
                     <div class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Visibility</span><span>${visibility} km</span></div>
                     <div id="aqiDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg"><span>Air Quality (AQI)</span><span id="aqiValue">--</span></div>
                 </div>
@@ -1171,40 +1222,6 @@
                 </div>
             `;
             
-            // Build the separate panel for Moon Phase, UV, etc. (NEW)
-            const moonPhase = 'Waxing Gibbous'; // Placeholder - requires a separate API call for real data
-            const uvIndex = '0 of 11'; // Placeholder for real data
-            const pressure = data.main.pressure;
-            const visibilityMetric = `${visibility} km`;
-
-            document.getElementById('additionalDetailsPanel').innerHTML = `
-                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Moon & Wellness</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 text-center">
-                    
-                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                        <p class="text-sm text-gray-700 font-semibold">Moonrise</p>
-                        <p class="text-base font-bold text-gray-800" id="moonriseTime">${formatTime(data.sys.sunrise - 3600, data.timezone)}</p>
-                    </div>
-                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        <p class="text-sm text-gray-700 font-semibold">UV Index</p>
-                        <p class="text-base font-bold text-gray-800" id="uvIndexValue">${uvIndex}</p>
-                    </div>
-                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        <p class="text-sm text-gray-700 font-semibold">Pressure</p>
-                        <p class="text-base font-bold text-gray-800" id="pressureValue">${pressure} hPa</p>
-                    </div>
-                    <div class="space-y-1 p-2 bg-gray-50 rounded-lg transition hover:shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        <p class="text-sm text-gray-700 font-semibold">Moon Phase</p>
-                        <p class="text-base font-bold text-gray-800" id="moonphaseValue">${moonPhase}</p>
-                    </div>
-                </div>
-            `;
-
-
             weatherDisplay.innerHTML = basicDetails + basicMetricsHTML + (isAdvanced ? advancedDetailsHTML : '');
             
             // 5. Post-render setup
@@ -1213,7 +1230,7 @@
             searchButton.style.display = 'none';
             weatherDisplay.classList.remove('hidden');
 
-            // Fetch secondary data (AQI, Alerts, AI Insight)
+            // Fetch secondary data (AQI, Alerts, AI Insight, Moon/UV)
             fetchSecondaryData(data.coord.lat, data.coord.lon, data.name, visibility, windGust);
             
             // Save search to history and update background
@@ -1225,17 +1242,41 @@
         // ... (SECONDARY DATA FETCHING, AI INSIGHT, EVENT LISTENERS remain the same) ...
         
         async function fetchSecondaryData(lat, lon, cityName, visibility, windGust) {
-            fetchAlerts(lat, lon);
-            const aqiData = await fetchAQI(lat, lon);
-            generateInsight(cityName, currentWeatherData, aqiData, visibility, windGust);
+            
+            // NOTE: fetchAlerts is now replaced by a unified fetchOneCallData function
+            const oneCallData = await fetchOneCallData(lat, lon); 
+            
+            if (oneCallData) {
+                 // Update UV Index and Moonrise/Moonset times from the One Call data
+                updateOneCallDetails(oneCallData);
+                
+                // Pass new data to AI insight if available
+                const currentUV = oneCallData.current.uvi;
+                const aqiData = await fetchAQI(lat, lon); 
+                
+                // Re-calculate visibility from AQI fetch if needed, otherwise use current data
+                generateInsight(cityName, currentWeatherData, aqiData, currentWeatherData.visibility, currentWeatherData.wind.gust, currentUV);
+            } else {
+                // Fallback for AQI/AI if One Call fails
+                const aqiData = await fetchAQI(lat, lon); 
+                generateInsight(cityName, currentWeatherData, aqiData, currentWeatherData.visibility, currentWeatherData.wind.gust, 0); // Default UV to 0
+            }
         }
-
-        async function fetchAlerts(lat, lon) {
+        
+        // NEW FUNCTION: Fetch data from the more comprehensive One Call API
+        async function fetchOneCallData(lat, lon) {
             try {
-                const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&exclude=current,minutely,hourly,daily`;
+                // We only need current data, minutely, and daily for full forecast/alerts
+                const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&exclude=minutely,hourly`;
                 const response = await fetch(url);
+                
+                if (!response.ok) {
+                    console.error("One Call API error:", response.status);
+                    return null;
+                }
                 const data = await response.json();
-
+                
+                // Process Alerts
                 if (data.alerts && data.alerts.length > 0) {
                     const alert = data.alerts[0];
                     alertContent.textContent = `${alert.event} - Issued by ${alert.sender_name}`;
@@ -1243,9 +1284,60 @@
                 } else {
                     alertBanner.classList.add('hidden');
                 }
+
+                return data;
             } catch (error) {
-                console.error("Error fetching alerts:", error);
+                console.error("Error fetching One Call data (Alerts/UV):", error);
                 alertBanner.classList.add('hidden');
+                return null;
+            }
+        }
+
+        // NEW FUNCTION: Update Moon/UV fields using the One Call data
+        function updateOneCallDetails(data) {
+            if (!data || !data.current || !data.daily || data.daily.length === 0) return;
+
+            const currentUV = data.current.uvi;
+            // UV Index
+            const uvi = Math.round(currentUV);
+            const uviElement = document.getElementById('uvIndexValue');
+            if (uviElement) {
+                uviElement.textContent = `${uvi} of 11`;
+                // Simple color coding for UV (0-2: Low, 3-5: Moderate, 6-7: High, 8-10: Very High, 11+: Extreme)
+                uviElement.className = 'text-base font-bold text-gray-800'; // Reset styling
+                if (uvi >= 8) uviElement.classList.add('text-red-600');
+                else if (uvi >= 6) uviElement.classList.add('text-orange-500');
+                else if (uvi >= 3) uviElement.classList.add('text-yellow-500');
+            }
+
+            // Moonrise/Moonset/Moon Phase 
+            const timezoneOffset = data.timezone_offset;
+
+            document.getElementById('moonriseTime').textContent = formatTime(data.daily[0].moonrise, timezoneOffset);
+            
+            // Placeholder for moon phase name (0 to 1)
+            const phase = data.daily[0].moon_phase;
+            let phaseName = 'New Moon';
+            if (phase > 0.05 && phase <= 0.20) phaseName = 'Waxing Crescent';
+            else if (phase > 0.20 && phase <= 0.35) phaseName = 'First Quarter';
+            else if (phase > 0.35 && phase <= 0.55) phaseName = 'Waxing Gibbous';
+            else if (phase > 0.55 && phase <= 0.70) phaseName = 'Full Moon';
+            else if (phase > 0.70 && phase <= 0.85) phaseName = 'Waning Gibbous';
+            else if (phase > 0.85 && phase <= 0.95) phaseName = 'Last Quarter';
+            else if (phase > 0.95 && phase <= 1.0) phaseName = 'Waning Crescent';
+
+            document.getElementById('moonphaseValue').textContent = phaseName;
+
+            // Health & Activities Advice (Right Sidebar)
+            const rightUvAdviceEl = document.getElementById('rightUvAdvice');
+            if (rightUvAdviceEl) {
+                if (currentUV >= 6) {
+                    rightUvAdviceEl.innerHTML = `**UV Index is High (${currentUV})**: Use SPF 30+ and seek shade.`;
+                } else if (currentUV >= 3) {
+                     rightUvAdviceEl.innerHTML = `**UV Index is Moderate (${currentUV})**: Wear a hat and sunglasses.`;
+                } else {
+                     rightUvAdviceEl.innerHTML = `UV Index is Low (${currentUV}).`;
+                }
             }
         }
         
@@ -1336,7 +1428,7 @@
             predictionBannerContainer.appendChild(predictionBanner);
         }
 
-        async function generateInsight(cityName, weatherData, aqiData, visibility, windGust) {
+        async function generateInsight(cityName, weatherData, aqiData, visibility, windGust, currentUV) {
             insightLoading.style.display = 'flex';
             insightContent.textContent = '';
             insightCard.classList.remove('hidden');
@@ -1350,11 +1442,12 @@
             const aqiStatus = aqiData ? `${aqiData.status} (AQI: ${aqiData.aqi})` : 'unavailable';
             const visibilityMsg = visibility >= 10 ? 'clear' : 'low';
             const gustMsg = windGust ? ` with gusts up to ${windGust.value} ${windGust.unit}.` : '';
+            const uvAdvice = currentUV >= 6 ? 'UV is high—wear sunscreen.' : 'UV is low.';
 
 
             const systemPrompt = "You are AeroView Insight, a world-class weather assistant with a friendly, witty, and concise personality. Your goal is to give a single, short paragraph (under 40 words) summary of the current weather, noting temperature, conditions, and offering one practical piece of advice (e.g., grab a coffee, grab a jacket, perfect day for a walk). You MUST reference the AQI if it's moderate or poor. Do not use bullet points or lists. Start your summary by stating the city name.";
             
-            const userQuery = `Current weather for ${cityName}: Temp ${temp}°${unit} (feels like ${feelsLike}°${unit}), ${description}. Wind ${wind.value} ${wind.unit}${gustMsg}. Air Quality is ${aqiStatus}. Visibility is ${visibilityMsg}.`;
+            const userQuery = `Current weather for ${cityName}: Temp ${temp}°${unit} (feels like ${feelsLike}°${unit}), ${description}. Wind ${wind.value} ${wind.unit}${gustMsg}. Air Quality is ${aqiStatus}. Visibility is ${visibilityMsg}. UV Index is ${currentUV}.`;
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
