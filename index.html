@@ -196,8 +196,8 @@
         <div class="flex justify-center flex-wrap gap-x-6 gap-y-3 mb-6 mt-4">
             <!-- Unit Toggle -->
             <div id="unitToggle" class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
-                <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-active">°C</button>
-                <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-inactive">°F</button>
+                <button id="celsiusBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-inactive">°C</button>
+                <button id="fahrenheitBtn" class="px-3 py-1 rounded-md text-sm font-bold transition unit-active">°F</button>
             </div>
 
             <!-- Basic / Advanced Toggle (NEW) -->
@@ -1566,11 +1566,13 @@
         // Initial Geolocation and Persistence Load Check
         window.onload = () => {
              // 1. Load Persistence Settings and update UI buttons
-             isCelsius = loadSetting('isCelsius', true);
+             // FIX: Default isCelsius to false (Fahrenheit) if nothing is saved
+             isCelsius = loadSetting('isCelsius', false);
              isAdvanced = loadSetting('isAdvanced', false);
              
-             toggleUnits(isCelsius ? 'C' : 'F'); // Apply saved unit and update buttons
-             toggleDetail(isAdvanced); // Apply saved detail level and update buttons
+             // Apply settings immediately. The toggleUnits logic handles updating the buttons correctly.
+             toggleUnits(isCelsius ? 'C' : 'F'); 
+             toggleDetail(isAdvanced); 
              
              // 2. Load Last City
              const lastCity = loadSetting('lastCity', null);
@@ -1607,6 +1609,7 @@
     </script>
 </body>
 </html>
+
 
 
 
