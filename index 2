@@ -344,7 +344,7 @@
             "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Philadelphia, PA", "Phoenix, AZ", "San Antonio, TX",
             "San Diego, CA", "Dallas, TX", "San Jose, CA", "Austin, TX", "Las Vegas, NV", "Miami, FL", "Boston, MA", 
             "Seattle, WA", "Denver, CO", "Reno, NV", "Mount Charleston, NV", "Birmingham, AL", 
-            "Toronto, CA", "Vancouver, CA", "Montreal, CA", "Mexico City, MX", "Guadalajara, MX", "Morelia, Michoacan, MX", // Fixed: Replaced complex name with Morelia
+            "Toronto, CA", "Vancouver, CA", "Montreal, CA", "Mexico City, MX", "Guadalajara, MX", "Morelia, Michoacan, MX", 
             "Havana, CU", "Kingston, JM", "San Juan, PR",
             // South America
             "Sao Paulo, BR", "Rio de Janeiro, BR", "Buenos Aires, AR", "Lima, PE", "Santiago, CL", "Bogota, CO",
@@ -379,6 +379,7 @@
             'SYDNEY': 'https://images.unsplash-lite.com/photo-1582260656515-f5be870c538a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'DUBAI': 'https://images.unsplash-lite.com/photo-1512495679313-264639902633?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'LAS VEGAS': 'https://images.unsplash-lite.com/photo-1550503046-e5c9a444d47c?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            // Add more common cities here for guaranteed relevant images
         };
 
         // --- STATE MAP FOR US CITIES ---
@@ -493,20 +494,26 @@
 
         // Converts Kelvin to Celsius
         function toCelsius(kelvin) {
-            return Math.round(kelvin - 273.15);
+            return kelvin - 273.15; // Kept precision for internal calculation
         }
 
         // Converts Celsius to Fahrenheit
         function toFahrenheit(celsius) {
             // Formula: (C * 9/5) + 32
-            return Math.round((celsius * 9/5) + 32);
+            return (celsius * 9/5) + 32;
         }
 
-        // Converts temperature based on current unit state
+        // CRITICAL FIX: Converts temperature based on current unit state (returns rounded number)
         function convertTemp(kelvin) {
             const celsius = toCelsius(kelvin);
-            // FIX: Ensure toFahrenheit is passed the Celsius value, not Kelvin
-            return isCelsius ? celsius : toFahrenheit(celsius); 
+            
+            if (isCelsius) {
+                return Math.round(celsius); 
+            } else {
+                // Ensure conversion is always Celsius -> Fahrenheit
+                const fahrenheit = toFahrenheit(celsius); 
+                return Math.round(fahrenheit); 
+            }
         }
 
         // Wind Speed conversion: m/s (API default) to desired unit
@@ -808,7 +815,10 @@
 
             forecastList.forEach(item => {
                 const dateKey = new Date(item.dt * 1000).toDateString();
-                const temp = convertTemp(item.main.temp);
+                
+                // Store the raw Kelvin value here. Conversion happens at display time.
+                const temp = item.main.temp; 
+                
                 const icon = item.weather[0].icon;
                 
                 if (!dailyData[dateKey]) {
@@ -829,9 +839,11 @@
                 const day = dailyData[dateKey];
                 const dayName = getDayName(day.dt);
 
-                // Calculate Min/Max Temp
-                const minTemp = Math.min(...day.temps);
-                const maxTemp = Math.max(...day.temps);
+                // CRITICAL FIX: Convert all temperatures for the day, then calculate Min/Max on the converted array.
+                const convertedTemps = day.temps.map(convertTemp); 
+
+                const minTemp = Math.min(...convertedTemps);
+                const maxTemp = Math.max(...convertedTemps);
 
                 // Determine the most frequent icon for the day
                 const mostFrequentIcon = Object.keys(day.icons).reduce((a, b) => day.icons[a] > day.icons[b] ? a : b);
@@ -862,9 +874,16 @@
             welcomeState.classList.add('hidden');
             weatherDisplay.classList.remove('hidden');
             
-            // Get temperature values from Kelvin (now fixed in convertTemp)
-            const temp = convertTemp(data.main.temp);
-            const feelsLike = convertTemp(data.main.feels_like);
+            // Get correct temperatures immediately using the fixed convertTemp
+            const temp_K = data.main.temp;
+            const feelsLike_K = data.main.feels_like;
+            const temp_min_K = data.main.temp_min;
+            const temp_max_K = data.main.temp_max;
+
+            const temp = convertTemp(temp_K);
+            const feelsLike = convertTemp(feelsLike_K);
+            const minTemp = convertTemp(temp_min_K);
+            const maxTemp = convertTemp(temp_max_K);
             
             const condition = data.weather[0].description;
             const iconCode = data.weather[0].icon;
@@ -919,7 +938,7 @@
                     </div>
                     <div id="minMaxTemp" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
                         <span>Min/Max</span>
-                        <span>${convertTemp(data.main.temp_max)}° / ${convertTemp(data.main.temp_min)}°${isCelsius ? 'C' : 'F'}</span>
+                        <span>${maxTemp}° / ${minTemp}°${isCelsius ? 'C' : 'F'}</span>
                     </div>
                     <div id="pressureDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
                         <span>Pressure</span>
@@ -989,7 +1008,8 @@
         // Fetches Severe Weather Alerts
         async function fetchAlerts(lat, lon) {
             try {
-                const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&exclude=current,minutely,hourly,daily`;
+                // Must use the onecall API endpoint with metric units for alerts
+                const url = `${ALERTS_URL}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&exclude=current,minutely,hourly,daily`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -1107,6 +1127,7 @@
             insightContent.textContent = '';
             insightCard.classList.remove('hidden');
 
+            // CRITICAL: Ensure correct converted temperature is used for AI prompt
             const temp = convertTemp(weatherData.main.temp);
             const unit = isCelsius ? 'C' : 'F';
             const wind = convertWindSpeed(weatherData.wind.speed);
@@ -1180,7 +1201,7 @@
 
             if (location) {
                 // Search by coordinates (Geolocation)
-                url = `${CURRENT_WEATHER_URL}?lat=${location.lat}&lon=${location.lon}&appid=${OPENWEATHER_API_KEY}&units=metric`;
+                url = `${CURRENT_WEATHER_URL}?lat=${location.lat}&lon=${location.lon}&appid=${OPENWEATHER_API_KEY}`;
                 cityQuery = 'Your Current Location'; // Use friendly name for UI
                 cityInput.dataset.lastSearch = cityQuery; // Store for refresh
             } else if (cityQuery) {
@@ -1191,7 +1212,8 @@
                 const parts = cityQuery.split(',').map(s => s.trim());
                 const apiCityName = parts[0]; 
                 
-                url = `${CURRENT_WEATHER_URL}?q=${apiCityName}&appid=${OPENWEATHER_API_KEY}&units=metric`;
+                // CRITICAL FIX: Removed &units=metric so API returns Kelvin (K).
+                url = `${CURRENT_WEATHER_URL}?q=${apiCityName}&appid=${OPENWEATHER_API_KEY}`;
                 cityInput.dataset.lastSearch = cityQuery; // Store original search string
             } else {
                 showMessage("Please enter a city name or grant location access.", false);
@@ -1200,6 +1222,7 @@
             
             try {
                 // 1. Fetch Current Weather
+                // CRITICAL FIX: Ensure forecast also returns Kelvin (K) by omitting the units= parameter
                 const [weatherResponse, forecastResponse] = await Promise.all([
                     fetch(url),
                     fetch(url.replace(CURRENT_WEATHER_URL, FORECAST_URL)),
@@ -1368,5 +1391,4 @@
     </script>
 </body>
 </html>
-
 
