@@ -220,7 +220,7 @@
                             <input type="text" id="cityInput" placeholder="Search City or Zip Code" 
                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 shadow-inner">
                             <button id="refreshButton" 
-                                    class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-center"
+                                    class="absolute right-0 top-0 h-full w-12 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg shadow-md transition duration-150 flex items-center justify-content-center"
                                     style="display: none;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v1h2a1 1 0 011 1v2a1 1 0 01-1 1H5v2h2a1 1 0 011 1v2a1 1 0 01-1 1H5v1a1 1 0 01-2 0v-1H2a1 1 0 01-1-1v-2a1 1 0 011-1h1V8H2a1 1 0 01-1-1V5a1 1 0 011-1h1V3a1 1 0 011-1zm6.5 7.728l3.182-3.182a4 4 0 00-5.657-5.657L6.818 3.343a6 6 0 118.485 8.485l-3.182 3.182a1 1 0 01-1.414-1.414z" clip-rule="evenodd" />
@@ -823,7 +823,7 @@
 
         // Maps weather condition codes to animated SVG icons
         function getAnimatedIcon(iconCode, size = 'w-24 h-24') {
-            const iconType = iconCode.substring(0, 2);
+            const iconType = iconCode.substring(0, 02);
             const color = 'white'; // Icon color for most backgrounds
             const sunColor = '#f59e0b'; // Amber for sun
             const cloudColor = '#e5e7eb'; // Gray-200 for clouds
@@ -965,6 +965,7 @@
             const dailyKeys = Object.keys(dailyData);
             const numDaysToShow = 7; // We explicitly want 7 cards
 
+            // NEW FIX: Iterate 7 times to ensure 7 cards are rendered for layout, even if data is missing
             for (let i = 0; i < numDaysToShow; i++) {
                 const dateKey = dailyKeys[i];
                 let cardHtml = '';
@@ -995,7 +996,7 @@
                     // Fallback for missing data (Guaranteed 7th card)
                     cardHtml = `
                         <div class="transition duration-300">
-                            <div class="w-full p-4 rounded-xl shadow-md text-center bg-gray-100 opacity-50">
+                            <div class="w-full p-4 rounded-xl shadow-md text-center bg-gray-100 opacity-50 flex flex-col justify-center items-center h-full">
                                 <p class="text-lg font-bold mb-1 text-gray-500">Day ${i + 1}</p>
                                 <div class="mx-auto h-12 w-12 my-1 bg-gray-300 rounded-full"></div>
                                 <p class="text-xs text-gray-500 mt-1">Data Unavailable</p>
@@ -1114,7 +1115,7 @@
             renderSearchDropdown(); 
         }
 
-        // ... (SECONDARY DATA FETCHING, AI INSIGHT, EVENT LISTENERS remain the same) ...
+        // ... (rest of the script block) ...
         
         async function fetchSecondaryData(lat, lon, cityName, visibility, windGust) {
             
@@ -1253,39 +1254,58 @@
 
         // NEW FUNCTION: Update Moon/UV fields using the One Call data
         function updateOneCallDetails(data) {
+            // FIX: Ensure data fields are set to N/A if One Call data is missing
+            const moonriseEl = document.getElementById('moonriseTime');
+            const uviEl = document.getElementById('uvIndexValue');
+            const pressureEl = document.getElementById('pressureValue');
+            const moonphaseEl = document.getElementById('moonphaseValue');
+
+            // Default all elements to N/A
+            moonriseEl.textContent = 'N/A';
+            uviEl.textContent = 'N/A';
+            pressureEl.textContent = 'N/A';
+            moonphaseEl.textContent = 'N/A';
+            
             if (!data || !data.current || !data.daily || data.daily.length === 0) return;
 
-            const currentUV = data.current.uvi;
+            const timezoneOffset = data.timezone_offset;
+
             // UV Index
+            const currentUV = data.current.uvi;
             const uvi = Math.round(currentUV);
-            const uviElement = document.getElementById('uvIndexValue');
-            if (uviElement) {
-                uviElement.textContent = `${uvi} of 11`;
-                // Simple color coding for UV (0-2: Low, 3-5: Moderate, 6-7: High, 8-10: Very High, 11+: Extreme)
-                uviElement.className = 'text-base font-bold text-gray-800'; // Reset styling
-                if (uvi >= 8) uviElement.classList.add('text-red-600');
-                else if (uvi >= 6) uviElement.classList.add('text-orange-500');
-                else if (uvi >= 3) uviElement.classList.add('text-yellow-500');
+            
+            if (currentUV !== undefined) {
+                 uviEl.textContent = `${uvi} of 11`;
+                 // Simple color coding for UV (0-2: Low, 3-5: Moderate, 6-7: High, 8-10: Very High, 11+: Extreme)
+                 uviEl.className = 'text-base font-bold text-gray-800'; // Reset styling
+                 if (uvi >= 8) uviEl.classList.add('text-red-600');
+                 else if (uvi >= 6) uviEl.classList.add('text-orange-500');
+                 else if (uvi >= 3) uviEl.classList.add('text-yellow-500');
             }
 
             // Moonrise/Moonset/Moon Phase 
-            const timezoneOffset = data.timezone_offset;
-
-            document.getElementById('moonriseTime').textContent = formatTime(data.daily[0].moonrise, timezoneOffset);
+            
+            if (data.daily[0].moonrise) {
+                moonriseEl.textContent = formatTime(data.daily[0].moonrise, timezoneOffset);
+            }
+            if (data.current.pressure) {
+                pressureEl.textContent = `${data.current.pressure} hPa`;
+            }
             
             // Placeholder for moon phase name (0 to 1)
             const phase = data.daily[0].moon_phase;
-            let phaseName = 'New Moon';
-            if (phase > 0.05 && phase <= 0.20) phaseName = 'Waxing Crescent';
-            else if (phase > 0.20 && phase <= 0.35) phaseName = 'First Quarter';
-            else if (phase > 0.35 && phase <= 0.55) phaseName = 'Waxing Gibbous';
-            else if (phase > 0.55 && phase <= 0.70) phaseName = 'Full Moon';
-            else if (phase > 0.70 && phase <= 0.85) phaseName = 'Waning Gibbous';
-            else if (phase > 0.85 && phase <= 0.95) phaseName = 'Last Quarter';
-            else if (phase > 0.95 && phase <= 1.0) phaseName = 'Waning Crescent';
-
-            document.getElementById('moonphaseValue').textContent = phaseName;
-
+            let phaseName = 'N/A';
+            if (phase !== undefined) {
+                if (phase <= 0.05) phaseName = 'New Moon';
+                else if (phase <= 0.20) phaseName = 'Waxing Crescent';
+                else if (phase <= 0.35) phaseName = 'First Quarter';
+                else if (phase <= 0.55) phaseName = 'Waxing Gibbous';
+                else if (phase <= 0.70) phaseName = 'Full Moon';
+                else if (phase <= 0.85) phaseName = 'Waning Gibbous';
+                else if (phase <= 0.95) phaseName = 'Last Quarter';
+                else if (phase <= 1.0) phaseName = 'Waning Crescent';
+                moonphaseEl.textContent = phaseName;
+            }
         }
         
         async function fetchAQI(lat, lon) {
