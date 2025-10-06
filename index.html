@@ -222,7 +222,7 @@
                     </button>
                     <button data-view="tenday" class="w-full text-left p-3 rounded-xl text-lg hover:bg-gray-200 nav-item flex items-center transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-4 4h.01M5 12h.01M19 12h.01M6 16h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        7 Day
+                        10 Day
                     </button>
 
                     <!-- NEW NAVIGATION ITEMS -->
@@ -385,7 +385,7 @@
 
                 <!-- 7 DAY FORECAST VIEW -->
                 <div id="tenday-view" class="view hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">7 Day Forecast</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">10 Day Forecast</h2>
                     <!-- Content rendered in forecastDisplay -->
                      <div id="forecastSection" class="mt-6">
                         <div id="forecastDisplay" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
@@ -406,9 +406,8 @@
                 <!-- VIDEO VIEW (New Placeholder) -->
                 <div id="video-view" class="view hidden">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Weather Video Reports</h2>
-                    <div class="bg-gray-100 p-8 rounded-xl border border-gray-300 text-center text-gray-600">
-                        <p class="mb-2">Video content integration is currently unavailable.</p>
-                        <p class="font-semibold">Future Feature: Embed relevant YouTube weather reports here.</p>
+                    <div id="videoContentContainer" class="bg-gray-100 p-4 rounded-xl border border-gray-300 text-center text-gray-600 flex justify-center items-center h-96">
+                        <p>Search for a city to load relevant videos.</p>
                     </div>
                 </div>
                 <!-- Severe Weather Information (Placeholder for Submenu items) -->
@@ -638,6 +637,8 @@
         const insightLoading = document.getElementById('insightLoading');
         const snowContainer = document.getElementById('snow-container');
         const predictionBannerContainer = document.getElementById('predictionBannerContainer');
+        const videoContentContainer = document.getElementById('videoContentContainer'); // New DOM element for video
+
 
         // --- CORE UTILITY FUNCTIONS ---
 
@@ -1098,8 +1099,8 @@
                 dailyData[dateKey].icons[icon] = (dailyData[dateKey].icons[icon] || 0) + 1;
             });
 
-            // CRITICAL FIX: Iterate through all available unique days (up to 7)
-            const dailyKeys = Object.keys(dailyData); 
+            // CRITICAL FIX: Ensure 7 days are processed if data allows
+            const dailyKeys = Object.keys(dailyData).slice(0, 7); 
 
             dailyKeys.forEach((dateKey, index) => {
                 const day = dailyData[dateKey];
@@ -1230,7 +1231,7 @@
             searchButton.style.display = 'none';
             weatherDisplay.classList.remove('hidden');
 
-            // Fetch secondary data (AQI, Alerts, AI Insight, Moon/UV)
+            // Fetch secondary data (AQI, Alerts, AI Insight, Moon/UV, Video)
             fetchSecondaryData(data.coord.lat, data.coord.lon, data.name, visibility, windGust);
             
             // Save search to history and update background
@@ -1261,6 +1262,69 @@
                 const aqiData = await fetchAQI(lat, lon); 
                 generateInsight(cityName, currentWeatherData, aqiData, currentWeatherData.visibility, currentWeatherData.wind.gust, 0); // Default UV to 0
             }
+            
+            // NEW: Fetch video data for the current city
+            fetchWeatherVideo(cityName);
+        }
+        
+        // NEW FUNCTION: Fetch video data using Google Search
+        async function fetchWeatherVideo(cityName) {
+            videoContentContainer.innerHTML = `<p class="text-lg text-blue-600 flex items-center">
+                <svg class="spinner h-5 w-5 mr-2" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray: 80, 100; opacity: 0.7;"></circle></svg>
+                Searching for video report...
+            </p>`;
+            
+            const systemPrompt = "You are a video search assistant. Respond ONLY with the direct, complete URL of a relevant YouTube video about the current weather or forecast for the specified city. If no video is highly relevant (like a local news report), respond with the most relevant weather forecast video available. Do not add any extra text or formatting, just the single URL.";
+            
+            const userQuery = `Latest weather forecast video for ${cityName}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error("Video search API failed.");
+
+                const result = await response.json();
+                const videoUrl = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+                if (videoUrl && videoUrl.includes("youtube.com")) {
+                    const videoIdMatch = videoUrl.match(/(?:v=|\/embed\/|\/watch\?v=|\.be\/)([^&"'>]+)/);
+                    const videoId = videoIdMatch ? videoIdMatch[1] : null;
+
+                    if (videoId) {
+                         const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+                         videoContentContainer.innerHTML = `
+                            <iframe 
+                                class="w-full h-full rounded-lg" 
+                                src="${embedUrl}" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                         `;
+                         return;
+                    }
+                }
+            } catch (error) {
+                console.error("Video Fetch Error:", error);
+            }
+            
+            // Fallback content
+            videoContentContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full">
+                    <p class="text-base text-gray-700">No recent, relevant video report found for ${cityName}.</p>
+                    <p class="text-sm text-gray-500 mt-1">Try searching for a major metropolitan area.</p>
+                </div>
+            `;
         }
         
         // NEW FUNCTION: Fetch data from the more comprehensive One Call API
@@ -1271,6 +1335,12 @@
                 const response = await fetch(url);
                 
                 if (!response.ok) {
+                    // FIX: If 401 Unauthorized occurs, handle it gracefully by skipping One Call data
+                    if (response.status === 401) {
+                         console.error("One Call API error: 401 Unauthorized. Key is not yet active for premium features (Alerts/UV/Moon). Skipping One Call data.");
+                         alertBanner.classList.add('hidden');
+                         return null; // Return null data gracefully
+                    }
                     console.error("One Call API error:", response.status);
                     return null;
                 }
@@ -1720,6 +1790,7 @@
     </script>
 </body>
 </html>
+
 
 
 
