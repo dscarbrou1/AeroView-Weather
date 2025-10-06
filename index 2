@@ -146,9 +146,38 @@
             color: white;
             box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
         }
+
+        /* Seasonal Snow Animation */
+        .snow {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .snow-flake {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #ffffff;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
     </style>
 </head>
 <body>
+
+    <div id="snow-container" class="snow"></div>
 
     <div id="app" class="bg-white/90 p-6 md:p-8 rounded-3xl shadow-2xl transition-all duration-300">
         
@@ -375,11 +404,10 @@
             'NEW YORK': 'https://images.unsplash.com/photo-1546467005-0e10b240590a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'LONDON': 'https://images.unsplash.com/photo-1533929780004-945624128521?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'PARIS': 'https://images.unsplash-lite.com/photo-1502602898624-ad4b2a8d5811?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            'TOKYO': 'https://images.unsplash-lite.com/photo-1540679776092-d96a60391d1a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
+            'TOKYO': 'https://images.unsplash-lite.com/photo-1540679776092-d96a99991d1a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'SYDNEY': 'https://images.unsplash-lite.com/photo-1582260656515-f5be870c538a?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'DUBAI': 'https://images.unsplash-lite.com/photo-1512495679313-264639902633?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
             'LAS VEGAS': 'https://images.unsplash-lite.com/photo-1550503046-e5c9a444d47c?q=80&w=1400&h=900&fit=crop&cs=tinysrgb',
-            // Add more common cities here for guaranteed relevant images
         };
 
         // --- STATE MAP FOR US CITIES ---
@@ -425,6 +453,7 @@
         const insightCard = document.getElementById('insightCard');
         const insightContent = document.getElementById('insightContent');
         const insightLoading = document.getElementById('insightLoading');
+        const snowContainer = document.getElementById('snow-container');
 
 
         // --- CORE UTILITY FUNCTIONS ---
@@ -494,15 +523,14 @@
 
         // Converts Kelvin to Celsius
         function toCelsius(kelvin) {
-            return kelvin - 273.15; // Kept precision for internal calculation
+            return kelvin - 273.15;
         }
 
         // Converts Celsius to Fahrenheit
         function toFahrenheit(celsius) {
-            // Formula: (C * 9/5) + 32
             return (celsius * 9/5) + 32;
         }
-
+        
         // CRITICAL FIX: Converts temperature based on current unit state (returns rounded number)
         function convertTemp(kelvin) {
             const celsius = toCelsius(kelvin);
@@ -646,7 +674,8 @@
                 const itemEl = document.createElement('div');
                 itemEl.textContent = item;
                 itemEl.className = 'p-2 cursor-pointer text-gray-700 hover:bg-blue-100 transition duration-150';
-                itemEl.onclick = () => {
+                itemEl.onmousedown = (e) => { // Use mousedown to prevent blur event from hiding dropdown
+                    e.preventDefault();
                     cityInput.value = item;
                     historyDisplay.classList.add('hidden');
                     getWeather(); // Trigger search immediately on click
@@ -756,6 +785,54 @@
             return `<div class="mx-auto ${size} flex items-center justify-center">${svgContent}</div>`;
         }
 
+        // Applies seasonal decorations to the background
+        function applySeasonalDecorations() {
+            const date = new Date();
+            const month = date.getMonth(); // 0 (Jan) to 11 (Dec)
+            const day = date.getDate();
+
+            const body = document.body;
+            const snowContainer = document.getElementById('snow-container');
+            
+            // Clear previous decorations
+            body.style.setProperty('--spring-emoji', 'none');
+            body.style.setProperty('--fall-emoji', 'none');
+            snowContainer.innerHTML = '';
+            
+            // --- 1. Winter/Holidays (Nov 20 - Jan 5) ---
+            if ((month === 10 && day >= 20) || month === 11 || (month === 0 && day <= 5)) {
+                
+                // Add snow class to body for snow-like gradient
+                body.classList.add('winter'); 
+                
+                // Falling snow animation (100 flakes)
+                for (let i = 0; i < 100; i++) {
+                    const flake = document.createElement('div');
+                    flake.className = 'snow-flake';
+                    flake.style.left = `${Math.random() * 100}vw`;
+                    flake.style.animationDuration = `${Math.random() * 2 + 3}s`; // 3 to 5 seconds
+                    flake.style.animationDelay = `${Math.random() * 5}s`;
+                    flake.style.opacity = `${Math.random() * 0.5 + 0.3}`;
+                    flake.style.fontSize = `${Math.random() * 3 + 1}px`;
+                    snowContainer.appendChild(flake);
+                }
+            } else {
+                body.classList.remove('winter');
+            }
+            
+            // --- 2. Spring/Easter (March 15 - May 1) ---
+            if ((month === 2 && day >= 15) || month === 3 || (month === 4 && day <= 1)) {
+                body.style.setProperty('--spring-emoji', '"🌷"');
+                body.style.setProperty('background-color', '#f0f9ff'); // Light blue background
+            }
+
+            // --- 3. Fall/Halloween (Sept 15 - Nov 15) ---
+            if ((month === 8 && day >= 15) || month === 9 || (month === 10 && day <= 15)) {
+                body.style.setProperty('--fall-emoji', '"🎃"');
+                body.style.setProperty('background-color', '#fff7ed'); // Off-white/cream background
+            }
+        }
+
 
         // --- DISPLAY FUNCTIONS ---
 
@@ -778,14 +855,11 @@
             
             if (!forecastWeatherData || !forecastWeatherData.list) return;
 
-            const targetDate = new Date(forecastWeatherData.list[selectedForecastDay * 8].dt * 1000).toDateString();
-
-            const hourlyList = forecastWeatherData.list.filter(item => {
-                const itemDate = new Date(item.dt * 1000).toDateString();
-                return itemDate === targetDate;
-            });
+            // Find the starting index for the selected day
+            const dayStart = selectedForecastDay * 8; 
+            const hourlyList = forecastWeatherData.list.slice(dayStart, dayStart + 8);
             
-            // Limit to max 15 hours for clean display (since data is 3-hour chunks)
+            // Limit to max 15 hours for clean display (since data is 3-hour chunks, we take max 8 entries, which is 24 hours)
             hourlyList.slice(0, 5).forEach(item => {
                 const temp = convertTemp(item.main.temp);
                 const time = getHourTime(item.dt);
@@ -816,9 +890,8 @@
             forecastList.forEach(item => {
                 const dateKey = new Date(item.dt * 1000).toDateString();
                 
-                // Store the raw Kelvin value here. Conversion happens at display time.
+                // Store the Kelvin value for min/max calculation
                 const temp = item.main.temp; 
-                
                 const icon = item.weather[0].icon;
                 
                 if (!dailyData[dateKey]) {
@@ -839,7 +912,8 @@
                 const day = dailyData[dateKey];
                 const dayName = getDayName(day.dt);
 
-                // CRITICAL FIX: Convert all temperatures for the day, then calculate Min/Max on the converted array.
+                // CRITICAL FIX: Convert all Kelvin temperatures to the current display unit (F or C)
+                // before calculating Min/Max on the converted array.
                 const convertedTemps = day.temps.map(convertTemp); 
 
                 const minTemp = Math.min(...convertedTemps);
@@ -880,6 +954,7 @@
             const temp_min_K = data.main.temp_min;
             const temp_max_K = data.main.temp_max;
 
+            // Apply conversions for display
             const temp = convertTemp(temp_K);
             const feelsLike = convertTemp(feelsLike_K);
             const minTemp = convertTemp(temp_min_K);
@@ -1061,6 +1136,7 @@
 
         // Analyzes forecast data to predict rain/snow timing (NEW)
         function displayPredictionTimeline(data) {
+            // Note: This function remains the same as it correctly calculates time intervals regardless of temp unit.
             const list = data.list.slice(0, 8); // Next 24 hours (8 x 3-hour slots)
             let rainStart = null;
             let rainEnd = null;
@@ -1110,7 +1186,7 @@
             
             // Insert the new banner after the main header
             const header = document.querySelector('header');
-            if (header && predictionBanner) {
+            if (header) {
                 // Remove old prediction banner if exists
                 let oldBanner = document.getElementById('predictionBanner');
                 if (oldBanner) oldBanner.remove();
@@ -1201,6 +1277,7 @@
 
             if (location) {
                 // Search by coordinates (Geolocation)
+                // CRITICAL FIX: Removed &units=metric here to return Kelvin (K)
                 url = `${CURRENT_WEATHER_URL}?lat=${location.lat}&lon=${location.lon}&appid=${OPENWEATHER_API_KEY}`;
                 cityQuery = 'Your Current Location'; // Use friendly name for UI
                 cityInput.dataset.lastSearch = cityQuery; // Store for refresh
@@ -1208,11 +1285,10 @@
                 // Search by city name
                 
                 // Sanitize city name: Strip state/country if present (e.g., "Reno, NV" -> "Reno")
-                // This ensures API succeeds but preserves the state info for display
                 const parts = cityQuery.split(',').map(s => s.trim());
                 const apiCityName = parts[0]; 
                 
-                // CRITICAL FIX: Removed &units=metric so API returns Kelvin (K).
+                // CRITICAL FIX: Removed &units=metric here to return Kelvin (K)
                 url = `${CURRENT_WEATHER_URL}?q=${apiCityName}&appid=${OPENWEATHER_API_KEY}`;
                 cityInput.dataset.lastSearch = cityQuery; // Store original search string
             } else {
@@ -1368,6 +1444,7 @@
         }
 
         window.onload = function () {
+            applySeasonalDecorations();
             loadState(); // Load C/F and Basic/Advanced settings
 
             // Load last searched city if available
