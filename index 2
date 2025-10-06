@@ -81,9 +81,8 @@
             border-bottom: 2px solid #3b82f6; 
         }
         /* History Item Focus Override */
-        #cityInput:focus + #historyContainer > #historyDisplay {
-            display: block;
-        }
+        /* REMOVED: This complex CSS override is prone to breaking, relying on JS instead */
+        
         /* Spinner animation */
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -617,12 +616,13 @@
 
         // Converts Kelvin to Celsius
         function toCelsius(kelvin) {
-            return kelvin - 273.15;
+            // FIX: Ensure kelvin is treated as a number
+            return parseFloat(kelvin) - 273.15;
         }
 
         // Converts Celsius to Fahrenheit
         function toFahrenheit(celsius) {
-            return (celsius * 9/5) + 32;
+            return (parseFloat(celsius) * 9/5) + 32;
         }
         
         // CRITICAL FIX: Converts temperature based on current unit state (returns rounded number)
@@ -735,8 +735,8 @@
         function renderSearchDropdown(query = '') {
             query = query.trim().toLowerCase();
             dropdownList.innerHTML = '';
-            // historyDisplay.classList.add('hidden'); // CRITICAL FIX: Removed this line
-            dropdownTitle.textContent = 'Recent Searches';
+            
+            // CRITICAL FIX: Only hide if query is empty AND no history exists
             
             if (query.length > 0) {
                 // SUGGESTIONS MODE
@@ -744,24 +744,22 @@
                 
                 if (suggestions.length > 0) {
                     dropdownTitle.textContent = `Suggestions for "${query}"`;
-                    clearHistoryBtn.style.display = 'none'; // Hide clear button in suggestion mode
+                    clearHistoryBtn.style.display = 'none';
                     dropdownDisplay(suggestions, 'suggestion');
-                    historyDisplay.classList.remove('hidden'); // Show dropdown
+                    historyDisplay.classList.remove('hidden'); 
                 } else {
-                    historyDisplay.classList.add('hidden'); // Hide if no suggestions
-                    return;
+                    historyDisplay.classList.add('hidden');
                 }
             } else {
-                // HISTORY MODE
+                // HISTORY MODE (Query is empty)
                 const history = loadSetting('searchHistory', []);
                 if (history.length > 0) {
                     dropdownTitle.textContent = 'Recent Searches';
-                    clearHistoryBtn.style.display = 'block'; // Show clear button in history mode
+                    clearHistoryBtn.style.display = 'block';
                     dropdownDisplay(history, 'history');
-                    historyDisplay.classList.remove('hidden'); // Show dropdown
+                    historyDisplay.classList.remove('hidden'); 
                 } else {
-                    historyDisplay.classList.add('hidden'); // Hide if no history
-                    return;
+                    historyDisplay.classList.add('hidden');
                 }
             }
         }
@@ -771,15 +769,14 @@
                 const itemEl = document.createElement('div');
                 itemEl.textContent = item;
                 itemEl.className = 'p-2 cursor-pointer text-gray-700 hover:bg-blue-100 transition duration-150';
-                itemEl.onmousedown = (e) => { // CRITICAL FIX: Use mousedown
+                itemEl.onmousedown = (e) => { 
                     e.preventDefault();
                     cityInput.value = item;
                     historyDisplay.classList.add('hidden');
-                    getWeather(); // Trigger search immediately on click
+                    getWeather(); 
                 };
                 dropdownList.appendChild(itemEl);
             });
-            // historyDisplay.classList.remove('hidden'); // CRITICAL FIX: Moved to renderSearchDropdown
         }
 
         // --- DYNAMIC VISUALS ---
@@ -1157,44 +1154,58 @@
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
-                tools: [{ "google_search": {} }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
             };
 
-            try {
-                const response = await fetch(GEMINI_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) throw new Error("Video search API failed.");
+            const maxRetries = 3;
+            let currentRetry = 0;
 
-                const result = await response.json();
+            const apiKey = ""; 
+
+            while (currentRetry < maxRetries) {
+                try {
+                    const response = await fetch(GEMINI_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`AI search API error: ${response.status} - ${errorText.substring(0, 100)}...`);
+                    }
+
+                    const result = await response.json();
                     const videoUrl = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-                if (videoUrl && videoUrl.includes("youtube.com")) {
-                    const videoIdMatch = videoUrl.match(/(?:v=|\/embed\/|\/watch\?v=|\.be\/)([^&"'>]+)/);
-                    const videoId = videoIdMatch ? videoIdMatch[1] : null;
+                    if (videoUrl && videoUrl.includes("youtube.com")) {
+                        const videoIdMatch = videoUrl.match(/(?:v=|\/embed\/|\/watch\?v=|\.be\/)([^&"'>]+)/);
+                        const videoId = videoIdMatch ? videoIdMatch[1] : null;
 
-                    if (videoId) {
-                         const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
-                         videoContentContainer.innerHTML = `
-                            <iframe 
-                                class="w-full h-full rounded-lg" 
-                                src="${embedUrl}" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                            </iframe>
-                         `;
-                         return;
+                        if (videoId) {
+                             const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+                             videoContentContainer.innerHTML = `
+                                <iframe 
+                                    class="w-full h-full rounded-lg" 
+                                    src="${embedUrl}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                             `;
+                             return;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Video Fetch Error:", error);
+                    currentRetry++;
+                    if (currentRetry < maxRetries) {
+                        const delay = Math.pow(2, currentRetry) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
                     }
                 }
-            } catch (error) {
-                console.error("Video Fetch Error:", error);
             }
-            
+
             // Fallback content
             videoContentContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-full">
@@ -1405,7 +1416,7 @@
                     
                     if (!response.ok) {
                         const errorText = await response.text();
-                        throw new Error(`API error: ${response.status} - ${errorText.substring(0, 100)}...`);
+                        throw new Error(`AI search API error: ${response.status} - ${errorText.substring(0, 100)}...`);
                     }
 
                     const result = await response.json();
@@ -1636,6 +1647,7 @@
     </script>
 </body>
 </html>
+
 
 
 
