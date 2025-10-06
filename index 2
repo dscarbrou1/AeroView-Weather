@@ -422,6 +422,7 @@
         let forecastWeatherData = null;
         const MAX_HISTORY = 5;
         let selectedForecastDay = 0; // Index for selected day (0 = today)
+        let lastAQI = null; // Store last AQI to pass to AI insight
 
         // --- DOM Elements ---
         const appContainer = document.getElementById('app');
@@ -963,6 +964,7 @@
             const condition = data.weather[0].description;
             const iconCode = data.weather[0].icon;
             const wind = convertWindSpeed(data.wind.speed);
+            const windGust = data.wind.gust ? convertWindSpeed(data.wind.gust) : null; // Get wind gust
             const humidity = data.main.humidity;
             
             const cityName = data.name;
@@ -985,7 +987,8 @@
             
             const sunrise = formatTime(data.sys.sunrise, data.timezone);
             const sunset = formatTime(data.sys.sunset, data.timezone);
-            
+            const visibility = (data.visibility / 1000).toFixed(1);
+
             // Get Dynamic Background Gradient
             const bgGradient = getBackgroundColor(data.weather[0].id);
             weatherDisplay.className = `p-6 text-white rounded-3xl shadow-xl transform transition-all duration-500 scale-100 hover:scale-[1.02] ${bgGradient} text-center`;
@@ -1021,7 +1024,7 @@
                     </div>
                     <div id="visibilityDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
                         <span>Visibility</span>
-                        <span>${(data.visibility / 1000).toFixed(1)} km</span>
+                        <span>${visibility} km</span>
                     </div>
                     <div id="aqiDetail" class="flex justify-between items-center bg-white/20 p-2 rounded-lg">
                         <span>Air Quality (AQI)</span>
@@ -1058,7 +1061,7 @@
             weatherDisplay.classList.remove('hidden');
 
             // Fetch secondary data (AQI, Alerts, AI Insight)
-            fetchSecondaryData(data.coord.lat, data.coord.lon, cityName);
+            fetchSecondaryData(data.coord.lat, data.coord.lon, cityName, visibility, windGust);
             
             // Save search to history and update background
             saveSearchHistory(cityInput.dataset.lastSearch);
@@ -1069,15 +1072,15 @@
         // --- SECONDARY DATA FETCHING ---
         
         // Fetches Alerts, AQI, and triggers AI Insight generation
-        async function fetchSecondaryData(lat, lon, cityName) {
+        async function fetchSecondaryData(lat, lon, cityName, visibility, windGust) {
             // Fetch Severe Weather Alerts
             fetchAlerts(lat, lon);
             
             // Fetch Air Quality Index (AQI)
-            fetchAQI(lat, lon);
+            const aqiData = await fetchAQI(lat, lon);
 
             // Generate AI Insight
-            generateInsight(cityName, currentWeatherData);
+            generateInsight(cityName, currentWeatherData, aqiData, visibility, windGust);
         }
 
         // Fetches Severe Weather Alerts
@@ -1110,6 +1113,7 @@
 
                 if (data.list && data.list.length > 0) {
                     const aqi = data.list[0].main.aqi;
+                    lastAQI = aqi; // Store for AI use
                     
                     let status = '';
                     let color = '';
@@ -1128,9 +1132,12 @@
                         aqiElement.textContent = `${aqi} (${status})`;
                         aqiElement.className = color + ' font-bold';
                     }
+                    return { aqi, status };
                 }
+                return null;
             } catch (error) {
                 console.error("Error fetching AQI:", error);
+                return null;
             }
         }
 
@@ -1198,22 +1205,27 @@
 
 
         // Generates the AI Insight summary
-        async function generateInsight(cityName, weatherData) {
+        async function generateInsight(cityName, weatherData, aqiData, visibility, windGust) {
             insightLoading.style.display = 'flex';
             insightContent.textContent = '';
             insightCard.classList.remove('hidden');
 
-            // CRITICAL: Ensure correct converted temperature is used for AI prompt
+            // Collect all display-ready data
             const temp = convertTemp(weatherData.main.temp);
             const unit = isCelsius ? 'C' : 'F';
             const wind = convertWindSpeed(weatherData.wind.speed);
             const description = weatherData.weather[0].description;
-            const humidity = weatherData.main.humidity;
             const feelsLike = convertTemp(weatherData.main.feels_like);
-
-            const systemPrompt = "You are AeroView Insight, a world-class weather assistant with a friendly, witty, and concise personality. Your goal is to give a single, short paragraph (under 40 words) summary of the current weather, noting temperature, conditions, and offering one practical piece of advice (e.g., grab a coffee, grab a jacket, perfect day for a walk). Do not use bullet points or lists. Start your summary by stating the city name.";
             
-            const userQuery = `Summarize the current weather for ${cityName}: Temperature is ${temp}°${unit} (feels like ${feelsLike}°${unit}), with ${description} and ${wind.value} ${wind.unit} winds. Humidity is ${humidity}%.`;
+            // AQI and Visibility data
+            const aqiStatus = aqiData ? `${aqiData.status} (AQI: ${aqiData.aqi})` : 'unavailable';
+            const visibilityMsg = visibility >= 10 ? 'clear' : 'low';
+            const gustMsg = windGust ? ` with gusts up to ${windGust.value} ${windGust.unit}.` : '';
+
+
+            const systemPrompt = "You are AeroView Insight, a world-class weather assistant with a friendly, witty, and concise personality. Your goal is to give a single, short paragraph (under 40 words) summary of the current weather, noting temperature, conditions, and offering one practical piece of advice (e.g., grab a coffee, grab a jacket, perfect day for a walk). You MUST reference the AQI if it's moderate or poor. Do not use bullet points or lists. Start your summary by stating the city name.";
+            
+            const userQuery = `Current weather for ${cityName}: Temp ${temp}°${unit} (feels like ${feelsLike}°${unit}), ${description}. Wind ${wind.value} ${wind.unit}${gustMsg}. Air Quality is ${aqiStatus}. Visibility is ${visibilityMsg}.`;
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
@@ -1468,4 +1480,5 @@
     </script>
 </body>
 </html>
+
 
